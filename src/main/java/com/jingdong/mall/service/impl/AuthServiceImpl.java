@@ -56,8 +56,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
-        // 1. 参数校验
-        validateLoginParams(request);
+//        // 1. 参数校验
+//        validateLoginParams(request);
 
         // 2. 查询用户
         User user = userMapper.selectByPhoneOrEmail(request.getAccount());
@@ -79,12 +79,12 @@ public class AuthServiceImpl implements AuthService {
         return buildLoginResponse(user);
     }
 
-    private void validateLoginParams(UserLoginRequest request) {
-        // 基本校验已在@Valid中完成，这里可添加额外校验
-        if (!StringUtils.hasText(request.getAccount())) {
-            throw new BusinessException(ErrorCode.PHONE_NULL);
-        }
-    }
+//    private void validateLoginParams(UserLoginRequest request) {
+//        // 基本校验已在@Valid中完成，这里可添加额外校验
+//        if (!StringUtils.hasText(request.getAccount())) {
+//            throw new BusinessException(ErrorCode.PHONE_NULL);
+//        }
+//    }
 
     private void validateRegisterParams(UserRegisterRequest request) {
 
@@ -155,8 +155,8 @@ public class AuthServiceImpl implements AuthService {
         userInfo.setAvatar(user.getAvatar());
         response.setUserInfo(userInfo);
 
-        // 更新最后登录时间
-        // user.setLastLoginTime(LocalDateTime.now());
+//         //更新最后登录时间
+//         user.setLastLoginTime(LocalDateTime.now());
 
         return response;
     }

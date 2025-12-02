@@ -23,7 +23,7 @@ public enum ErrorCode {
     VERIFY_CODE_ERROR(1006, "验证码错误"),
     VERIFY_CODE_EXPIRED(1007, "验证码已过期"),
     AGREEMENT_NOT_ACCEPTED(1008, "请同意用户协议"),
-    PHONE_NULL(1009,"手机号为空"),
+    //PHONE_NULL(1009,"手机号为空"),
     PHONE_FORMAT_ERROR(1010,"手机号格式不正确"),
     ACCOUNT_OR_PASSWORD_ERROR(1011, "账号或密码错误"),
     USER_DISABLED(1012, "用户已被禁用"),
