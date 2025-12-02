@@ -8,8 +8,8 @@ import org.apache.ibatis.annotations.*;
 @Mapper
 public interface UserMapper {
 
-    @Insert("INSERT INTO user (phone, email, password, username, avatar, status, role, created_time, updated_time) " +
-            "VALUES (#{phone}, #{email}, #{password}, #{username}, #{avatar}, #{status}, #{role}, #{createdTime}, #{updatedTime})")
+    @Insert("INSERT INTO user (phone, email, password, username, avatar, status, role) " +
+            "VALUES (#{phone}, #{email}, #{password}, #{username}, #{avatar}, #{status}, #{role})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(User user);
 
