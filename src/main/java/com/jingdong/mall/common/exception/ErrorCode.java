@@ -2,9 +2,9 @@
 package com.jingdong.mall.common.exception;
 
 /*
-* 错误码的常量定义，在新建API的时候，都要注意要处理哪些业务错误，根据功能新增错误码
-* 系统错误后端就不捕获了，我们只捕获业务错误
-* */
+ * 错误码的常量定义，在新建API的时候，都要注意要处理哪些业务错误，根据功能新增错误码
+ * 系统错误后端就不捕获了，我们只捕获业务错误
+ * */
 
 import lombok.Getter;
 
@@ -25,6 +25,8 @@ public enum ErrorCode {
     AGREEMENT_NOT_ACCEPTED(1008, "请同意用户协议"),
     PHONE_NULL(1009,"手机号为空"),
     PHONE_FORMAT_ERROR(1010,"手机号格式不正确"),
+    ACCOUNT_OR_PASSWORD_ERROR(1011, "账号或密码错误"),
+    USER_DISABLED(1012, "用户已被禁用"),
 
     // 商品相关 (2000-2999)
     PRODUCT_NOT_EXIST(2001, "商品不存在"),

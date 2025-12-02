@@ -1,7 +1,9 @@
 // service/AuthService.java
 package com.jingdong.mall.service;
 
+import com.jingdong.mall.model.dto.request.UserLoginRequest;
 import com.jingdong.mall.model.dto.request.UserRegisterRequest;
+import com.jingdong.mall.model.dto.response.UserLoginResponse;
 import com.jingdong.mall.model.dto.response.UserRegisterResponse;
 
 /*
@@ -9,4 +11,6 @@ import com.jingdong.mall.model.dto.response.UserRegisterResponse;
 * */
 public interface AuthService {
     UserRegisterResponse register(UserRegisterRequest request);
+    UserLoginResponse login(UserLoginRequest request);
+
 }
