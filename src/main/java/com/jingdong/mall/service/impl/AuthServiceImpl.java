@@ -193,6 +193,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void deleteAccount(String userId, DeleteAccountRequest request) {
+
         // 1. 校验用户ID有效性
         if (!StringUtils.hasText(userId) || !userId.matches("\\d+")) {
             throw new BusinessException(ErrorCode.USER_NOT_EXIST);
