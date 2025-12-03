@@ -5,13 +5,13 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.mapper.UserMapper;
-import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.model.dto.request.ResetPasswordRequest;
-import com.jingdong.mall.model.dto.response.ResetPasswordResponse;
-import com.jingdong.mall.model.dto.request.UserRegisterRequest;
-import com.jingdong.mall.model.dto.response.UserRegisterResponse;
 import com.jingdong.mall.model.dto.request.UserLoginRequest;
+import com.jingdong.mall.model.dto.request.UserRegisterRequest;
+import com.jingdong.mall.model.dto.response.ResetPasswordResponse;
 import com.jingdong.mall.model.dto.response.UserLoginResponse;
+import com.jingdong.mall.model.dto.response.UserRegisterResponse;
+import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.service.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,35 +58,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
-//        // 1. 参数校验
-//        validateLoginParams(request);
 
-        // 2. 查询用户
+        // 1. 查询用户
         User user = userMapper.selectByPhoneOrEmail(request.getAccount());
         if (user == null) {
             throw new BusinessException(ErrorCode.ACCOUNT_OR_PASSWORD_ERROR);
         }
 
-        // 3. 验证密码
+        // 2. 验证密码
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException(ErrorCode.ACCOUNT_OR_PASSWORD_ERROR);
         }
 
-        // 4. 检查用户状态
+        // 3. 检查用户状态
         if (user.getStatus() != User.Status.ENABLED) {
             throw new BusinessException(ErrorCode.USER_DISABLED);
         }
 
-        // 5. 构建响应
+        // 4. 构建响应
         return buildLoginResponse(user);
     }
-
-//    private void validateLoginParams(UserLoginRequest request) {
-//        // 基本校验已在@Valid中完成，这里可添加额外校验
-//        if (!StringUtils.hasText(request.getAccount())) {
-//            throw new BusinessException(ErrorCode.PHONE_NULL);
-//        }
-//    }
 
     private void validateRegisterParams(UserRegisterRequest request) {
 
@@ -172,7 +163,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
         // 1. 参数校验
-        validateResetPasswordParams(request);
+        if (!Pattern.compile("^1[3-9]\\d{9}$").matcher(request.getPhone()).matches()) {
+            throw new BusinessException(ErrorCode.PHONE_FORMAT_ERROR);
+        }
 
         // 2. 查询用户（通过手机号）
         User user = userMapper.selectByPhoneOrEmail(request.getPhone());
@@ -197,26 +190,6 @@ public class AuthServiceImpl implements AuthService {
 
         // 5. 返回成功响应
         return new ResetPasswordResponse(200, "密码重置成功");
-    }
-
-    /**
-     * 找回密码参数校验
-     */
-    private void validateResetPasswordParams(ResetPasswordRequest request) {
-        // 手机号格式校验
-        if (!Pattern.compile("^1[3-9]\\d{9}$").matcher(request.getPhone()).matches()) {
-            throw new BusinessException(ErrorCode.PHONE_FORMAT_ERROR);
-        }
-
-        // 验证码非空校验
-        if (!StringUtils.hasText(request.getCode())) {
-            throw new BusinessException("验证码不能为空");
-        }
-
-        // 新密码非空校验（注解已做长度校验，这里补充非空校验）
-        if (!StringUtils.hasText(request.getNewPassword())) {
-            throw new BusinessException("新密码不能为空");
-        }
     }
 
 }
