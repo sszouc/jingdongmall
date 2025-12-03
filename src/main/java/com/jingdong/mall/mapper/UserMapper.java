@@ -28,4 +28,10 @@ public interface UserMapper {
     int updatePasswordById(@Param("id") Long id,
                            @Param("password") String password,
                            @Param("updatedTime") LocalDateTime updatedTime);
+
+    @Delete("DELETE FROM user WHERE id = #{id}")
+    int deleteById(Long id);
+
+    @Select("SELECT * FROM user WHERE id = #{id}")
+    User selectById(Long id);
 }

@@ -5,6 +5,7 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.mapper.UserMapper;
+import com.jingdong.mall.model.dto.request.DeleteAccountRequest;
 import com.jingdong.mall.model.dto.request.ResetPasswordRequest;
 import com.jingdong.mall.model.dto.request.UserLoginRequest;
 import com.jingdong.mall.model.dto.request.UserRegisterRequest;
@@ -189,5 +190,39 @@ public class AuthServiceImpl implements AuthService {
         }
 
     }
+
+    @Override
+    public void deleteAccount(String userId, DeleteAccountRequest request) {
+        // 1. 校验用户ID有效性
+        if (!StringUtils.hasText(userId) || !userId.matches("\\d+")) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        // 2. 查询用户信息
+        User user = userMapper.selectById(Long.valueOf(userId));
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        // 3. 校验用户状态（必须是正常状态才能注销）
+        if (user.getStatus() != User.Status.ENABLED) {
+            throw new BusinessException(ErrorCode.USER_DISABLED);
+        }
+
+        // 4. 校验密码正确性
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BusinessException(ErrorCode.PASSWORD_ERROR);
+        }
+
+        // 5. 执行账号删除（逻辑删除/物理删除可选，这里采用物理删除，根据实际需求调整）
+        int deleteResult = userMapper.deleteById(Long.valueOf(userId));
+        if (deleteResult <= 0) {
+            throw new BusinessException("账号注销失败，请稍后重试");
+        }
+
+        log.info("用户注销成功，用户ID：{}", userId);
+    }
+
+
 
 }
