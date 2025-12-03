@@ -2,6 +2,8 @@
 package com.jingdong.mall.controller.api;
 
 import com.jingdong.mall.common.response.Result;
+import com.jingdong.mall.model.dto.request.ResetPasswordRequest;
+import com.jingdong.mall.model.dto.response.ResetPasswordResponse;
 import com.jingdong.mall.model.dto.request.UserRegisterRequest;
 import com.jingdong.mall.model.dto.response.UserRegisterResponse;
 import com.jingdong.mall.model.dto.request.UserLoginRequest;
@@ -35,6 +37,12 @@ public class AuthController {
     public Result<UserLoginResponse> login(@RequestBody @Valid UserLoginRequest request) {
         UserLoginResponse response = authService.login(request);
         return Result.success(response);
+    }
+
+    @PostMapping("/reset-password")
+    public Result<ResetPasswordResponse> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        ResetPasswordResponse response = authService.resetPassword(request);
+        return Result.success(response.getMessage(), response);
     }
 }
 

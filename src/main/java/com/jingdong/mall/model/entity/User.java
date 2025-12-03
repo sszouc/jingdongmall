@@ -46,6 +46,11 @@ public class User {
     private String avatar;
 
     /**
+     * 性别
+     */
+    private String gender;
+
+    /**
      * 状态（1正常，0禁用）
      */
     private Integer status;

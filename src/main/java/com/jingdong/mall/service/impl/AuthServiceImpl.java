@@ -6,6 +6,8 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.mapper.UserMapper;
 import com.jingdong.mall.model.entity.User;
+import com.jingdong.mall.model.dto.request.ResetPasswordRequest;
+import com.jingdong.mall.model.dto.response.ResetPasswordResponse;
 import com.jingdong.mall.model.dto.request.UserRegisterRequest;
 import com.jingdong.mall.model.dto.response.UserRegisterResponse;
 import com.jingdong.mall.model.dto.request.UserLoginRequest;
@@ -166,4 +168,55 @@ public class AuthServiceImpl implements AuthService {
         // 简化实现，实际项目中需要完整的验证码服务
         return "123456".equals(code); // 测试用，实际应该从Redis获取验证码
     }
+
+    @Override
+    public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
+        // 1. 参数校验
+        validateResetPasswordParams(request);
+
+        // 2. 查询用户（通过手机号）
+        User user = userMapper.selectByPhoneOrEmail(request.getPhone());
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        // 3. 验证验证码（复用已有校验逻辑）
+        if (!validateSmsCode(request.getPhone(), request.getCode())) {
+            throw new BusinessException(ErrorCode.VERIFY_CODE_ERROR);
+        }
+
+        // 4. 更新密码（加密存储）
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedTime(LocalDateTime.now());
+
+        // 这里需要新增UserMapper的更新方法（见步骤五）
+        int updateResult = userMapper.updatePasswordById(user.getId(), user.getPassword(), user.getUpdatedTime());
+        if (updateResult <= 0) {
+            throw new BusinessException("密码重置失败，请稍后重试");
+        }
+
+        // 5. 返回成功响应
+        return new ResetPasswordResponse(200, "密码重置成功");
+    }
+
+    /**
+     * 找回密码参数校验
+     */
+    private void validateResetPasswordParams(ResetPasswordRequest request) {
+        // 手机号格式校验
+        if (!Pattern.compile("^1[3-9]\\d{9}$").matcher(request.getPhone()).matches()) {
+            throw new BusinessException(ErrorCode.PHONE_FORMAT_ERROR);
+        }
+
+        // 验证码非空校验
+        if (!StringUtils.hasText(request.getCode())) {
+            throw new BusinessException("验证码不能为空");
+        }
+
+        // 新密码非空校验（注解已做长度校验，这里补充非空校验）
+        if (!StringUtils.hasText(request.getNewPassword())) {
+            throw new BusinessException("新密码不能为空");
+        }
+    }
+
 }

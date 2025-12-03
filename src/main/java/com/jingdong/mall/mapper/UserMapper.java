@@ -4,6 +4,8 @@ package com.jingdong.mall.mapper;
 import com.jingdong.mall.model.entity.User;
 import org.apache.ibatis.annotations.*;
 
+import java.time.LocalDateTime;
+
 //不解释，参考spring三层架构
 @Mapper
 public interface UserMapper {
@@ -21,4 +23,9 @@ public interface UserMapper {
 
     @Select("SELECT * FROM user WHERE phone = #{phone} OR email = #{email}")
     User selectByPhoneOrEmail(String account);
+
+    @Update("UPDATE user SET password = #{password}, updated_time = #{updatedTime} WHERE id = #{id}")
+    int updatePasswordById(@Param("id") Long id,
+                           @Param("password") String password,
+                           @Param("updatedTime") LocalDateTime updatedTime);
 }
