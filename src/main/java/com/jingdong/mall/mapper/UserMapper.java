@@ -28,4 +28,13 @@ public interface UserMapper {
     int updatePasswordById(@Param("id") Long id,
                            @Param("password") String password,
                            @Param("updatedTime") LocalDateTime updatedTime);
+
+    //根据ID查询用户
+    @Select("SELECT * FROM user WHERE id = #{id}")
+    User selectById(@Param("id") Long id);
+
+    //更新用户信息
+    @Update("UPDATE user SET username = #{username}, email = #{email}, phone = #{phone}, " +
+            "avatar = #{avatar}, gender = #{gender}, updated_time = #{updatedTime} WHERE id = #{id}")
+    int updateUserInfo(User user);
 }
