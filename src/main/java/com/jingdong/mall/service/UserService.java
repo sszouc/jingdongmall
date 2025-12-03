@@ -1,5 +1,7 @@
-// src/main/java/com/jingdong/mall/service/UserService.java
 package com.jingdong.mall.service;
+
+import com.jingdong.mall.model.dto.request.UserUpdateRequest;
+import com.jingdong.mall.model.dto.response.UserInfoResponse;
 
 /**
  * 用户服务接口
@@ -17,17 +19,17 @@ public interface UserService {
     /**
      * 获取用户信息
      * @param userId 用户ID
-     * @return 用户信息
+     * @return 用户信息响应
      */
-    Object getUserInfo(Integer userId);
+    UserInfoResponse getUserInfo(Integer userId);
 
     /**
      * 更新用户信息
      * @param userId 用户ID
-     * @param userInfo 用户信息
-     * @return 是否成功
+     * @param request 更新请求
+     * @return 更新后的用户信息
      */
-    boolean updateUserInfo(Integer userId, Object userInfo);
+    UserInfoResponse updateUserInfo(Integer userId, UserUpdateRequest request);
 
     /**
      * 修改密码

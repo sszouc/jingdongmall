@@ -31,10 +31,17 @@ public interface UserMapper {
 
     //根据ID查询用户
     @Select("SELECT * FROM user WHERE id = #{id}")
-    User selectById(@Param("id") Long id);
+    User selectById(@Param("id") Integer id);
 
-    //更新用户信息
-    @Update("UPDATE user SET username = #{username}, email = #{email}, phone = #{phone}, " +
-            "avatar = #{avatar}, gender = #{gender}, updated_time = #{updatedTime} WHERE id = #{id}")
+    // 更新用户信息
+    @Update("UPDATE user SET " +
+            "username = #{username}, " +
+            "email = #{email}, " +
+            "phone = #{phone}, " +
+            "avatar = #{avatar}, " +
+            "gender = #{gender}, " +
+            "birthday = #{birthday}, " +
+            "updated_time = #{updatedTime} " +
+            "WHERE id = #{id}")
     int updateUserInfo(User user);
 }

@@ -1,3 +1,4 @@
+// src/main/java/com/jingdong/mall/model/entity/User.java
 package com.jingdong.mall.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -5,10 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 用户实体类，不解释
+ * 用户实体类
  */
 @Data
 @NoArgsConstructor
@@ -26,7 +28,7 @@ public class User {
     private String username;
 
     /**
-     * 密码（加密存储待做）
+     * 密码（加密存储）
      */
     private String password;
 
@@ -46,9 +48,15 @@ public class User {
     private String avatar;
 
     /**
-     * 性别
+     * 性别：0保密，1男，2女
      */
-    private String gender;
+    private Integer gender;
+
+    /**
+     * 生日
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate birthday;
 
     /**
      * 状态（1正常，0禁用）
@@ -83,4 +91,10 @@ public class User {
         public static final int ADMIN = 1;
     }
 
+    // 性别常量
+    public static class Gender {
+        public static final int UNKNOWN = 0;  // 保密/未知
+        public static final int MALE = 1;     // 男
+        public static final int FEMALE = 2;   // 女
+    }
 }
