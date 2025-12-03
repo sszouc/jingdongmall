@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.util.Base64;
 import java.util.Date;
 
 import com.jingdong.mall.common.exception.ErrorCode;
@@ -25,14 +26,11 @@ public class JwtUtil {
     private long expiration;
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = secret.getBytes();
-        return Keys.hmacShaKeyFor(keyBytes);
+        byte[] decodedKey = Base64.getDecoder().decode(secret);
+        return Keys.hmacShaKeyFor(decodedKey);
     }
 
     public String generateToken(String userId) {
-
-        byte[] keyBytes = secret.getBytes();
-
 
         return Jwts.builder()
                 .subject(userId)

@@ -80,3 +80,27 @@ CREATE TABLE token_blacklist
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
     COMMENT = '令牌黑名单表';
+
+#6.地址表
+CREATE TABLE user_address
+(
+    id           INT          NOT NULL AUTO_INCREMENT COMMENT '地址主键ID',
+    user_id      INT          NOT NULL COMMENT '用户ID',
+    name         VARCHAR(50)  NOT NULL COMMENT '收货人姓名',
+    phone        VARCHAR(20)  NOT NULL COMMENT '收货人手机号',
+    province     VARCHAR(50)  NOT NULL COMMENT '省份',
+    city         VARCHAR(50)  NOT NULL COMMENT '城市',
+    district     VARCHAR(50)  NOT NULL COMMENT '区县',
+    detail       VARCHAR(255) NOT NULL COMMENT '详细地址',
+    postal_code  VARCHAR(10) COMMENT '邮政编码',
+    is_default   TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否默认地址：1是，0否',
+    status       TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '状态：1有效，0删除/无效',
+    created_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (id),
+    -- 外键关联用户表
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+    COMMENT = '用户收货地址表';
