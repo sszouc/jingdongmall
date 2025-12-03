@@ -40,6 +40,7 @@ public class AuthController {
 
     @PostMapping("/reset-password")
     public Result<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        authService.resetPassword(request);
         return Result.success();
     }
 }
