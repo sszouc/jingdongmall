@@ -67,18 +67,5 @@ public class JwtUtil {
         }
     }
 
-    //目前不用这个
-
-//    public boolean validateToken(String token) {
-//        try {
-//            Jwts.parser()
-//                    .verifyWith(getSigningKey())
-//                    .build()
-//                    .parseSignedClaims(token);
-//            return true;
-//        } catch (JwtException e) {
-//            return false;
-//        }
-//    }
 }
 

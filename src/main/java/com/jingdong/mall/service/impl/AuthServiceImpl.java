@@ -8,7 +8,6 @@ import com.jingdong.mall.mapper.UserMapper;
 import com.jingdong.mall.model.dto.request.ResetPasswordRequest;
 import com.jingdong.mall.model.dto.request.UserLoginRequest;
 import com.jingdong.mall.model.dto.request.UserRegisterRequest;
-import com.jingdong.mall.model.dto.response.ResetPasswordResponse;
 import com.jingdong.mall.model.dto.response.UserLoginResponse;
 import com.jingdong.mall.model.dto.response.UserRegisterResponse;
 import com.jingdong.mall.model.entity.User;
@@ -161,7 +160,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
+    public void resetPassword(ResetPasswordRequest request) {
+
         // 1. 参数校验
         if (!Pattern.compile("^1[3-9]\\d{9}$").matcher(request.getPhone()).matches()) {
             throw new BusinessException(ErrorCode.PHONE_FORMAT_ERROR);
@@ -188,8 +188,6 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException("密码重置失败，请稍后重试");
         }
 
-        // 5. 返回成功响应
-        return new ResetPasswordResponse(200, "密码重置成功");
     }
 
 }
