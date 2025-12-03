@@ -27,7 +27,7 @@ public interface UserService {
      * 更新用户信息
      * @param userId 用户ID
      * @param request 更新请求
-     * @return 更新后的用户信息
+     * @return 更新后的用户信息响应
      */
     UserInfoResponse updateUserInfo(Integer userId, UserUpdateRequest request);
 

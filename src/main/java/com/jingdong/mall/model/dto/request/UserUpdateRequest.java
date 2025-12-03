@@ -50,15 +50,11 @@ public class UserUpdateRequest {
             return null;
         }
 
-        switch (gender) {
-            case "男":
-                return 1;
-            case "女":
-                return 2;
-            case "未知":
-                return 0;
-            default:
-                return 0; // 默认为保密/未知
-        }
+        return switch (gender) {
+            case "男" -> 1;
+            case "女" -> 2;
+            case "未知" -> 0;
+            default -> 0; // 默认为保密/未知
+        };
     }
 }

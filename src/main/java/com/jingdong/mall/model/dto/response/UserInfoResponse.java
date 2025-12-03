@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * 用户信息响应
@@ -77,14 +76,10 @@ public class UserInfoResponse {
             return "未知";
         }
 
-        switch (genderInt) {
-            case 1:
-                return "男";
-            case 2:
-                return "女";
-            case 0:
-            default:
-                return "未知";
-        }
+        return switch (genderInt) {
+            case 1 -> "男";
+            case 2 -> "女";
+            default -> "未知";
+        };
     }
 }

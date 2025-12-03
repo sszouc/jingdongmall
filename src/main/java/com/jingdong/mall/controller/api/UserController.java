@@ -144,7 +144,7 @@ public class UserController {
             Integer userId = Integer.parseInt(userIdStr);
 
             // 更新用户信息
-            UserInfoResponse updatedUserInfo = userService.updateUserInfo(userId, request);
+            userService.updateUserInfo(userId, request);
 
             log.info("用户信息更新成功: userId={}", userId);
             return Result.success();
