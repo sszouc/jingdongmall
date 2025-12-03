@@ -41,6 +41,7 @@ public class AddressController {
         //authHeader是一个带提示信息的Token，示例：
         //Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzY0NzUzMTEyLCJleHAiOjE3NjQ3NTU3MDR9.L4D9sfiJXWK87eQR5k_yt_3cGgl7snOZ5NgSWOkD4-lW5KWVdM72-PzlduPmZZylXT_csrz3LjgeXquDZh-SuQ
         // 1. 验证和解析Token
+        log.info("authHeader={}", authHeader);
         String token = extractTokenFromHeader(authHeader);
         String userIdStr = jwtUtil.getUserIdFromToken(token);
 
