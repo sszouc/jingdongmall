@@ -83,7 +83,7 @@ git clone https://github.com/sszouc/jingdongmall.git
 ## 📚 API 文档
 
 ### Swagger UI
-启动后访问：http://localhost:8080/swagger-ui.html
+访问：https://s.apifox.cn/64b70f40-002d-482d-9eca-661da045186e
 
 ## 🔐 认证授权
 

@@ -33,9 +33,6 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    @Autowired
-    private UserService userService;
-
     private SecretKey getSigningKey() {
         byte[] keyBytes = secret.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
@@ -58,6 +55,9 @@ public class JwtUtil {
      */
     public String getUserIdFromToken(String token) {
         try {
+
+            //TODO:记得这里要加黑名单机制，生产环境中先不做
+
             // 验证token是否在黑名单中
             // 由于UserService没有提供检查黑名单的方法，我们直接调用解析
             // 如果token在黑名单中，会在解析时抛出异常

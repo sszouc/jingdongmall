@@ -120,9 +120,11 @@ public class AuthServiceImpl implements AuthService {
     private UserRegisterResponse buildRegisterResponse(User user) {
         UserRegisterResponse response = new UserRegisterResponse();
 
+        // TODO:记得这里要加入检查黑名单有没有这个Token的功能，现在先不做
         // 生成JWT token
         String token = jwtUtil.generateToken(String.valueOf(user.getId()));
         response.setToken(token);
+
 
         // 构建用户信息
         UserRegisterResponse.UserInfo userInfo = new UserRegisterResponse.UserInfo();
@@ -136,7 +138,7 @@ public class AuthServiceImpl implements AuthService {
 
     private UserLoginResponse buildLoginResponse(User user) {
         UserLoginResponse response = new UserLoginResponse();
-
+        // TODO:记得这里要加入检查黑名单有没有这个Token的功能，现在先不做
         // 生成JWT token
         String token = jwtUtil.generateToken(String.valueOf(user.getId()));
         response.setToken(token);
