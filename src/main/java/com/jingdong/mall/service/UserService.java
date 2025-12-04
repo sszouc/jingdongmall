@@ -14,14 +14,14 @@ public interface UserService {
      * @param userId 用户ID
      * @return 是否成功
      */
-    boolean signout(String token, Integer userId);
+    boolean signout(String token, long userId);
 
     /**
      * 获取用户信息
      * @param userId 用户ID
      * @return 用户信息响应
      */
-    UserInfoResponse getUserInfo(Integer userId);
+    UserInfoResponse getUserInfo(long userId);
 
     /**
      * 更新用户信息
@@ -29,7 +29,7 @@ public interface UserService {
      * @param request 更新请求
      * @return 更新后的用户信息响应
      */
-    UserInfoResponse updateUserInfo(Integer userId, UserUpdateRequest request);
+    UserInfoResponse updateUserInfo(long userId, UserUpdateRequest request);
 
     /**
      * 修改密码
@@ -38,5 +38,5 @@ public interface UserService {
      * @param newPassword 新密码
      * @return 是否成功
      */
-    boolean changePassword(Integer userId, String oldPassword, String newPassword);
+    boolean changePassword(long userId, String oldPassword, String newPassword);
 }

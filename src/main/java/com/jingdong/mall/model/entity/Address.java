@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class Address {
     private Integer id;
-    private Integer userId;
+    private long userId;
     private String name;
     private String phone;
     private String province;

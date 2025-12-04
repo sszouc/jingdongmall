@@ -31,7 +31,7 @@ public interface UserMapper {
 
     //根据ID查询用户
     @Select("SELECT * FROM user WHERE id = #{id}")
-    User selectById(@Param("id") Integer id);
+    User selectById(@Param("id") long id);
 
     // 更新用户信息
     @Update("UPDATE user SET " +
@@ -44,4 +44,10 @@ public interface UserMapper {
             "updated_time = #{updatedTime} " +
             "WHERE id = #{id}")
     int updateUserInfo(User user);
+
+    @Delete("DELETE FROM user WHERE id = #{id}")
+    int deleteById(Long id);
+
+    @Select("SELECT * FROM user WHERE id = #{id}")
+    User selectById(Long id);
 }

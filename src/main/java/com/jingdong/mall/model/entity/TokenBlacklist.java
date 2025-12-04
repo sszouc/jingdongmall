@@ -24,7 +24,7 @@ public class TokenBlacklist {
     /**
      * 用户ID
      */
-    private Integer userId;
+    private long userId;
 
     /**
      * 令牌哈希（完整token的SHA256）

@@ -43,7 +43,7 @@ public class UserController {
 
         try {
             String userIdStr = jwtUtil.getUserIdFromToken(token);
-            Integer userId = Integer.parseInt(userIdStr);
+            long userId = Long.parseLong(userIdStr);
 
             boolean success = userService.signout(token, userId);
 
@@ -74,7 +74,7 @@ public class UserController {
             }
 
             String userIdStr = jwtUtil.getUserIdFromToken(token);
-            Integer userId = Integer.parseInt(userIdStr);
+            long userId = Long.parseLong(userIdStr);
 
             UserInfoResponse userInfo = userService.getUserInfo(userId);
 
@@ -102,7 +102,7 @@ public class UserController {
             }
 
             String userIdStr = jwtUtil.getUserIdFromToken(token);
-            Integer userId = Integer.parseInt(userIdStr);
+            long userId = Long.parseLong(userIdStr);
 
             boolean success = userService.changePassword(
                     userId,
@@ -141,7 +141,7 @@ public class UserController {
 
             // 获取用户ID
             String userIdStr = jwtUtil.getUserIdFromToken(token);
-            Integer userId = Integer.parseInt(userIdStr);
+            long userId = Long.parseLong(userIdStr);
 
             // 更新用户信息
             userService.updateUserInfo(userId, request);

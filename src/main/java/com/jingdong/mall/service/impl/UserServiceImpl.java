@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean signout(String token, Integer userId) {
+    public boolean signout(String token, long userId) {
         try {
             // 计算token的SHA256哈希值
             String tokenHash = calculateTokenHash(token);
@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfoResponse getUserInfo(Integer userId) {
+    public UserInfoResponse getUserInfo(long userId) {
         try {
             // 查询用户信息
             User user = userMapper.selectById(userId);
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserInfoResponse updateUserInfo(Integer userId, UserUpdateRequest request) {
+    public UserInfoResponse updateUserInfo(long userId, UserUpdateRequest request) {
         try {
             // 验证请求参数
             if (request == null || !request.isAnyFieldPresent()) {
@@ -164,7 +164,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean changePassword(Integer userId, String oldPassword, String newPassword) {
+    public boolean changePassword(long userId, String oldPassword, String newPassword) {
         try {
             log.info("开始修改密码: userId={}", userId);
 

@@ -6,6 +6,7 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.service.UserService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,11 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
+    /**
+     * -- GETTER --
+     *  获取过期时间
+     */
+    @Getter
     @Value("${jwt.expiration}")
     private long expiration;
 
@@ -81,10 +87,4 @@ public class JwtUtil {
         }
     }
 
-    /**
-     * 获取过期时间
-     */
-    public long getExpiration() {
-        return expiration;
-    }
 }
