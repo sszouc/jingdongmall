@@ -37,7 +37,14 @@ public enum ErrorCode {
 
     // 订单相关 (3000-3999)
     ORDER_NOT_EXIST(3001, "订单不存在"),
-    ORDER_STATUS_ERROR(3002, "订单状态异常");
+    ORDER_STATUS_ERROR(3002, "订单状态异常"),
+
+
+    // 新增地址相关错误码（地址管理：4000-4999）
+    ADDRESS_NOT_EXIST(4001, "地址不存在"),
+    ADDRESS_ADD_FAILED(4002, "新增地址失败"),
+    ADDRESS_UPDATE_FAILED(4003, "修改地址失败"),
+    ADDRESS_DELETE_FAILED(4004, "删除地址失败");
 
     private final Integer code;
     private final String message;
