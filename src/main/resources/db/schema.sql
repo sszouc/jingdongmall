@@ -1,5 +1,5 @@
-#这里是数据库的信息
-#1.用户信息表
+-- 这里是数据库的信息
+-- 1.用户信息表
 CREATE TABLE user
 (
     id           INT         NOT NULL AUTO_INCREMENT COMMENT '用户主键ID',
@@ -17,55 +17,8 @@ CREATE TABLE user
     PRIMARY KEY (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='用户表';
-#2.商品表
-CREATE TABLE product
-(
-    id           INT            NOT NULL AUTO_INCREMENT COMMENT '商品主键ID',
-    category_id  INT            NULL COMMENT '关联分类ID',
-    name         VARCHAR(255)   NULL COMMENT '商品名称',
-    subtitle     VARCHAR(255) COMMENT '商品副标题',
-    main_image   VARCHAR(255) COMMENT '主图URL',
-    price        DECIMAL(10, 2) NULL COMMENT '商品售价（单位:元）',
-    stock        INT            NULL CHECK (stock >= 0) COMMENT '库存数量',
-    sales        INT            NULL CHECK (sales >= 0) COMMENT '销量',
-    status       SMALLINT       NOT NULL DEFAULT 0 CHECK (status IN (1, 0)) COMMENT '状态：1上架，0下架',
-    description  TEXT           NULL COMMENT '商品详情',
-    created_time DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_time DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (id),
-    FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE SET NULL
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='商品表';
 
-#3.商品收藏表
-CREATE TABLE product_favorite
-(
-    id           INT      NOT NULL AUTO_INCREMENT COMMENT '主键',
-    user_id      INT      NOT NULL COMMENT '用户ID',
-    product_id   INT      NOT NULL COMMENT '商品ID',
-    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE,
-    UNIQUE KEY uk_user_product (user_id, product_id)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='商品收藏表';
-
-#4.商品分类表
-CREATE TABLE category
-(
-    id           INT         NOT NULL AUTO_INCREMENT COMMENT '分类主键ID',
-    name         VARCHAR(50) NULL COMMENT '分类名称',
-    parent_id    INT         NOT NULL CHECK (parent_id >= 0) COMMENT '父分类ID：0为一级分类',
-    sort         INT         NOT NULL CHECK (sort >= 0) COMMENT '排序权重',
-    status       TINYINT     NOT NULL DEFAULT 0 CHECK (status IN (1, 0)) COMMENT '状态：1启用，0禁用',
-    created_time DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_time DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (id)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='商品分类表';
-
-#5.Token黑名单
+-- 2.Token黑名单
 CREATE TABLE token_blacklist
 (
     id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
@@ -82,7 +35,7 @@ CREATE TABLE token_blacklist
   DEFAULT CHARSET = utf8mb4
     COMMENT = '令牌黑名单表';
 
-#6.地址表
+-- 3.地址表
 CREATE TABLE user_address
 (
     id           INT          NOT NULL AUTO_INCREMENT COMMENT '地址主键ID',
@@ -105,3 +58,106 @@ CREATE TABLE user_address
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
     COMMENT = '用户收货地址表';
+
+-- 4.商品分类表
+CREATE TABLE product_category
+(
+    id           INT          NOT NULL AUTO_INCREMENT COMMENT '分类主键ID',
+    name         VARCHAR(100) NOT NULL COMMENT '分类名称',
+    parent_id    INT          NOT NULL DEFAULT 0 COMMENT '父级分类ID，0表示根分类',
+    level        TINYINT      NOT NULL DEFAULT 1 COMMENT '分类层级：1一级，2二级',
+    sort_order   INT          NOT NULL DEFAULT 0 COMMENT '排序序号，数字越小越靠前',
+    is_active    TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
+    created_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (id),
+    INDEX idx_parent_id (parent_id),
+    INDEX idx_sort_order (sort_order),
+    INDEX idx_is_active (is_active)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '商品分类表';
+
+-- 5.商品主表（SPU表）
+CREATE TABLE product
+(
+    id               INT          NOT NULL AUTO_INCREMENT COMMENT '商品主键ID',
+    category_id      INT          NULL COMMENT '分类ID',
+    name             VARCHAR(200) NOT NULL COMMENT '商品名称',
+    description      TEXT COMMENT '商品描述',
+    detail_html      TEXT COMMENT '商品详情HTML',
+    main_images      JSON COMMENT '主图数组，JSON格式',
+    tags             JSON COMMENT '标签数组，JSON格式',
+
+    -- 所有SKU共用的参数（前端ProductDetail.params）
+    model            VARCHAR(100) COMMENT '产品型号',
+    os               VARCHAR(100) COMMENT '操作系统',
+    positioning      VARCHAR(100) COMMENT '产品定位',
+    cpu_model        VARCHAR(100) COMMENT 'CPU型号',
+    cpu_series       VARCHAR(100) COMMENT 'CPU系列',
+    max_turbo_freq   VARCHAR(50) COMMENT '最高睿频',
+    cpu_chip         VARCHAR(100) COMMENT 'CPU芯片',
+    screen_size      VARCHAR(50) COMMENT '屏幕尺寸',
+    screen_ratio     VARCHAR(50) COMMENT '显示比例',
+    resolution       VARCHAR(100) COMMENT '分辨率',
+    color_gamut      VARCHAR(100) COMMENT '色域',
+    refresh_rate     VARCHAR(50) COMMENT '刷新率',
+    ram_type         VARCHAR(50) COMMENT '内存类型',
+    ssd_type         VARCHAR(50) COMMENT '硬盘类型',
+    gpu_type         VARCHAR(50) COMMENT '显卡类型',
+    vram_type        VARCHAR(50) COMMENT '显存类型',
+    camera           VARCHAR(100) COMMENT '摄像头',
+    wifi             VARCHAR(100) COMMENT '无线网卡',
+    bluetooth        VARCHAR(100) COMMENT '蓝牙',
+    data_interfaces  VARCHAR(200) COMMENT '数据接口',
+    video_interfaces VARCHAR(200) COMMENT '视频接口',
+    audio_interfaces VARCHAR(200) COMMENT '音频接口',
+    keyboard         VARCHAR(100) COMMENT '键盘',
+    face_id          VARCHAR(100) COMMENT '人脸识别',
+    weight           VARCHAR(50) COMMENT '重量',
+    thickness        VARCHAR(50) COMMENT '厚度',
+    software         VARCHAR(200) COMMENT '附带软件',
+
+    is_active        TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '状态：1上架，0下架',
+    created_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (id),
+    INDEX idx_category_id (category_id),
+    INDEX idx_is_active (is_active),
+    FULLTEXT INDEX idx_name (name) COMMENT '全文索引用于搜索',
+    FOREIGN KEY (category_id) REFERENCES product_category (id) ON DELETE SET NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '商品主表（SPU表）';
+
+-- 6.具体产品表
+CREATE TABLE product_sku
+(
+    id            INT PRIMARY KEY AUTO_INCREMENT,
+    product_id    INT            NOT NULL,
+    sku_code      VARCHAR(50) UNIQUE,
+    price         DECIMAL(10, 2) NOT NULL COMMENT '价格',
+    stock         INT            NOT NULL DEFAULT 0 COMMENT '库存',
+    sales_count   INT                     DEFAULT 0 COMMENT '销量',
+
+    -- ========== specs 数据（用户选择的规格）==========
+    os            VARCHAR(100) COMMENT '操作系统',
+    cpu           VARCHAR(100) COMMENT '处理器',
+    ram           VARCHAR(50) COMMENT '内存容量',
+    storage       VARCHAR(50) COMMENT '存储容量',
+    gpu           VARCHAR(100) COMMENT '显卡',
+
+    -- ========== diffParams 数据（SKU特有技术参数）==========
+    -- 与 specs 相对应
+    -- 例如，如果gpu选择了RTX 5070，那么vram_capacity就会是8GB
+    -- 如果cpu选择了Ultra 9 275HX，那么gpu_chip会是NVIDIA® GeForce RTX™ 5070
+    -- 如果storage选择了2T SSD，ssd_capacity会是2T(1TB+1TB) SSD
+
+    ssd_capacity  VARCHAR(50) COMMENT '硬盘容量',
+    gpu_chip      VARCHAR(100) COMMENT '显卡芯片',
+    vram_capacity VARCHAR(50) COMMENT '显存容量',
+
+    is_active     TINYINT(1)              DEFAULT 1,
+    created_time  DATETIME                DEFAULT CURRENT_TIMESTAMP,
+    updated_time  DATETIME                DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '具体产品表（SKU表）';

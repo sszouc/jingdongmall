@@ -31,6 +31,7 @@ jingdong-mall-backend/
 │   ├── common/                         # 通用模块
 │   │   ├── config/                     # 配置类
 │   │   ├── exception/                  # 异常处理
+│   │   ├── handler/                    # 全局异常捕获
 │   │   ├── response/                   # 统一响应
 │   │   └── utils/                      # 工具类
 │   ├── controller/                     # 控制层
@@ -46,8 +47,6 @@ jingdong-mall-backend/
 │           └── response/               # 响应DTO
 └── src/main/resources/
     ├── application.yml                 # 主配置
-    ├── application-dev.yml             # 开发环境
-    ├── application-prod.yml            # 生产环境
     └── mapper/                         # MyBatis XML
 ```
 
