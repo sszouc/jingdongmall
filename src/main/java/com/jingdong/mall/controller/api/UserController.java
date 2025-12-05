@@ -49,7 +49,7 @@ public class UserController {
 
             if (success) {
                 log.info("用户退出登录成功: userId={}", userId);
-                return Result.success("退出登录成功");
+                return Result.success();
             } else {
                 throw new BusinessException("退出登录失败，请重试");
             }
