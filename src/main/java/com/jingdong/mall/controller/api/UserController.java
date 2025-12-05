@@ -49,7 +49,7 @@ public class UserController {
 
             if (success) {
                 log.info("用户退出登录成功: userId={}", userId);
-                return Result.success();
+                return Result.success("退出登录成功", null);
             } else {
                 throw new BusinessException("退出登录失败，请重试");
             }
@@ -112,7 +112,7 @@ public class UserController {
 
             if (success) {
                 log.info("密码修改成功: userId={}", userId);
-                return Result.success();
+                return Result.success("密码修改成功", null);
             } else {
                 throw new BusinessException("密码修改失败");
             }
@@ -147,7 +147,7 @@ public class UserController {
             userService.updateUserInfo(userId, request);
 
             log.info("用户信息更新成功: userId={}", userId);
-            return Result.success();
+            return Result.success("信息更新成功",null);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
