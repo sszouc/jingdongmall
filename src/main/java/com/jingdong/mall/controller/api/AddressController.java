@@ -45,7 +45,7 @@ public class AddressController {
         String userIdStr = jwtUtil.getUserIdFromToken(token);
         Long userId = Long.parseLong(userIdStr);
         List<AddressResponse> addresses = addressService.getUserAddresses(userId);
-        return Result.success(addresses);
+        return Result.success("地址列表获取成功",addresses);
     }
 
     // 新增接口：添加地址
@@ -63,7 +63,7 @@ public class AddressController {
         String userIdStr = jwtUtil.getUserIdFromToken(token);
         Long userId = Long.parseLong(userIdStr);
         AddressResponse response = addressService.addAddress(userId, request);
-        return Result.success("新增地址成功", response);
+        return Result.success("地址添加成功", response);
     }
 
     // 新增接口：修改地址
@@ -81,7 +81,7 @@ public class AddressController {
         String userIdStr = jwtUtil.getUserIdFromToken(token);
         Long userId = Long.parseLong(userIdStr);
         AddressResponse response = addressService.updateAddress(userId, request);
-        return Result.success("修改地址成功", response);
+        return Result.success("地址修改成功", response);
     }
 
     // 新增接口：删除地址
@@ -100,7 +100,7 @@ public class AddressController {
         String userIdStr = jwtUtil.getUserIdFromToken(token);
         Long userId = Long.parseLong(userIdStr);
         boolean success = addressService.deleteAddress(userId, addressId);
-        return success ? Result.success("删除地址成功") : Result.error("删除地址失败");
+        return success ? Result.success("地址删除成功",null) : Result.error("删除地址失败");
     }
 
     // 原有工具方法保持不变

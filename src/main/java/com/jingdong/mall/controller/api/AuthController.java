@@ -39,19 +39,19 @@ public class AuthController {
     @PostMapping("/register")
     public Result<UserRegisterResponse> register(@RequestBody @Valid UserRegisterRequest request) {
         UserRegisterResponse response = authService.register(request);
-        return Result.success(response);
+        return Result.success("注册成功",response);
     }
 
     @PostMapping("/login")
     public Result<UserLoginResponse> login(@RequestBody @Valid UserLoginRequest request) {
         UserLoginResponse response = authService.login(request);
-        return Result.success(response);
+        return Result.success("登录成功",response);
     }
 
     @PostMapping("/reset-password")
     public Result<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         authService.resetPassword(request);
-        return Result.success();
+        return Result.success("密码重置成功",null);
     }
 
     @DeleteMapping("/delete-account")
@@ -71,7 +71,7 @@ public class AuthController {
         authService.deleteAccount(userId, deleteRequest);
         //成功响应不需要返回文字内容
         // 4. 返回成功响应
-        return Result.success();
+        return Result.success("账号注销成功", null);
     }
 }
 
