@@ -33,8 +33,14 @@ public enum ErrorCode {
 
     // 商品相关 (2000-2999)
     PRODUCT_NOT_EXIST(2001, "商品不存在"),
-    PRODUCT_STOCK_NOT_ENOUGH(2002, "商品库存不足"),
+    PRODUCT_STOCK_NOT_ENOUGH(2002, "商品暂无库存"),
     PRODUCT_DETAIL_ERROR(2003, "获取商品详情失败"),
+    PRODUCT_ID_NULL(2004,"商品ID不能为空"),
+    MIN_PRICE_ZERO(2005,"最低价格不能小于0"),
+    MAX_PRICE_ZERO(2006,"最高价格不能小于0"),
+    MAX_LOWER_MIN(2007,"最低价格不能大于最高价格"),
+    CATEGORY_ID_INVALID(2008,"分类ID不合法"),
+    SORT_INVALID(2009,"排序方式不合法"),
 
     // 订单相关 (3000-3999)
     ORDER_NOT_EXIST(3001, "订单不存在"),

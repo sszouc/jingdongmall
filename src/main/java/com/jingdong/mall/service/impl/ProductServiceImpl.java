@@ -39,7 +39,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductDetailResponse getProductDetail(Integer productId) {
         // 1. 验证商品ID
         if (productId == null || productId <= 0) {
-            throw new BusinessException("商品ID不能为空");
+            throw new BusinessException(ErrorCode.PRODUCT_ID_NULL);
         }
 
         // 2. 查询商品基本信息
@@ -50,9 +50,6 @@ public class ProductServiceImpl implements ProductService {
 
         // 3. 查询商品SKU列表
         List<ProductSku> skus = productSkuMapper.selectByProductId(productId);
-        if (skus.isEmpty()) {
-            throw new BusinessException("商品暂无库存");
-        }
 
         // 4. 构建商品详情响应
         return buildProductDetailResponse(product, skus);
@@ -114,19 +111,19 @@ public class ProductServiceImpl implements ProductService {
 
         // 价格验证
         if (request.getMinPrice() != null && request.getMinPrice().compareTo(java.math.BigDecimal.ZERO) < 0) {
-            throw new BusinessException("最低价格不能小于0");
+            throw new BusinessException(ErrorCode.MIN_PRICE_ZERO);
         }
         if (request.getMaxPrice() != null && request.getMaxPrice().compareTo(java.math.BigDecimal.ZERO) < 0) {
-            throw new BusinessException("最高价格不能小于0");
+            throw new BusinessException(ErrorCode.MAX_PRICE_ZERO);
         }
         if (request.getMinPrice() != null && request.getMaxPrice() != null
                 && request.getMinPrice().compareTo(request.getMaxPrice()) > 0) {
-            throw new BusinessException("最低价格不能大于最高价格");
+            throw new BusinessException(ErrorCode.MAX_LOWER_MIN);
         }
 
         // 分类ID验证
         if (request.getCategoryId() != null && request.getCategoryId() <= 0) {
-            throw new BusinessException("分类ID不合法");
+            throw new BusinessException(ErrorCode.CATEGORY_ID_INVALID);
         }
 
         // 排序方式验证
@@ -140,7 +137,7 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
             if (!isValid) {
-                throw new BusinessException("排序方式不合法");
+                throw new BusinessException(ErrorCode.SORT_INVALID);
             }
         }
     }

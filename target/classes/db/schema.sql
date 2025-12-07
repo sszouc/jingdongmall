@@ -128,11 +128,11 @@ CREATE TABLE product
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT = '商品主表（SPU表）';
 
+-- 6.具体产品表
 CREATE TABLE product_sku
 (
     id            INT PRIMARY KEY AUTO_INCREMENT,
     product_id    INT            NOT NULL,
-    sku_code      VARCHAR(50) UNIQUE,
     price         DECIMAL(10, 2) NOT NULL COMMENT '价格',
     stock         INT            NOT NULL DEFAULT 0 COMMENT '库存',
     sales_count   INT                     DEFAULT 0 COMMENT '销量',
@@ -158,5 +158,105 @@ CREATE TABLE product_sku
     created_time  DATETIME                DEFAULT CURRENT_TIMESTAMP,
     updated_time  DATETIME                DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
-)ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT = '商品规格表（SKU表）';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '具体产品表（SKU表）';
+
+-- 7.购物车表
+CREATE TABLE shopping_cart
+(
+    id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '购物车主键ID',
+    user_id      INT             NOT NULL COMMENT '用户ID',
+    sku_id       INT             NOT NULL COMMENT 'SKU ID',
+    quantity     INT             NOT NULL DEFAULT 1 COMMENT '商品数量',
+    selected     TINYINT(1)      NOT NULL DEFAULT 1 COMMENT '是否选中：1选中，0未选中',
+    created_time DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_sku (user_id, sku_id), -- 每个用户每个SKU只能有一条记录
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (sku_id) REFERENCES product_sku (id) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '购物车表';
+
+-- 8.订单主表
+CREATE TABLE `order`
+(
+    id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单主键ID',
+    order_sn         VARCHAR(32)     NOT NULL UNIQUE COMMENT '订单编号（唯一）',
+    user_id          INT             NOT NULL COMMENT '用户ID',
+    total_amount     DECIMAL(10, 2)  NOT NULL COMMENT '订单总金额',
+    discount_amount  DECIMAL(10, 2)  NOT NULL DEFAULT 0.00 COMMENT '优惠金额',
+    shipping_fee     DECIMAL(10, 2)  NOT NULL DEFAULT 0.00 COMMENT '运费',
+    pay_amount       DECIMAL(10, 2)  NOT NULL COMMENT '实付金额 = total_amount - discount_amount + shipping_fee',
+
+    -- 收货地址信息（快照，防止地址修改影响历史订单）
+    receiver_name    VARCHAR(50)     NOT NULL COMMENT '收货人姓名',
+    receiver_phone   VARCHAR(20)     NOT NULL COMMENT '收货人手机号',
+    receiver_province VARCHAR(50)    NOT NULL COMMENT '省份',
+    receiver_city    VARCHAR(50)     NOT NULL COMMENT '城市',
+    receiver_district VARCHAR(50)    NOT NULL COMMENT '区县',
+    receiver_detail  VARCHAR(255)    NOT NULL COMMENT '详细地址',
+    receiver_postal_code VARCHAR(10) COMMENT '邮政编码',
+
+    -- 订单状态
+    status           TINYINT         NOT NULL CHECK (status IN (0, 1, 2, 3, 4, 5, 6, 7)) COMMENT '订单状态：0待付款，1待发货，2待收货，3已完成，4已取消，5退款中，6退款成功，7退款失败',
+
+    -- 支付信息
+    payment_method   TINYINT         NOT NULL DEFAULT 0 COMMENT '支付方式：0未支付，1支付宝，2微信支付，3银行卡',
+    pay_time         DATETIME        COMMENT '支付时间',
+    transaction_id   VARCHAR(64)     COMMENT '第三方支付交易号',
+
+    -- 物流信息
+    shipping_method  VARCHAR(50)     COMMENT '配送方式',
+    tracking_number  VARCHAR(100)    COMMENT '快递单号',
+    shipping_time    DATETIME        COMMENT '发货时间',
+    confirm_time     DATETIME        COMMENT '确认收货时间',
+
+    -- 取消/退款信息
+    cancel_time      DATETIME        COMMENT '取消时间',
+    cancel_reason    VARCHAR(255)    COMMENT '取消原因',
+    refund_time      DATETIME        COMMENT '退款时间',
+    refund_reason    VARCHAR(255)    COMMENT '退款原因',
+
+    -- 备注
+    buyer_remark     VARCHAR(500)    COMMENT '买家留言',
+    admin_remark     VARCHAR(500)    COMMENT '管理员备注',
+
+    created_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_order_sn (order_sn),
+    INDEX idx_status (status),
+    INDEX idx_created_time (created_time),
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '订单主表';
+
+-- 9.订单商品明细表
+CREATE TABLE order_item
+(
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单商品主键ID',
+    order_id        BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
+    sku_id          INT             NOT NULL COMMENT 'SKU ID',
+    product_name    VARCHAR(200)    NOT NULL COMMENT '商品名称（快照）',
+    sku_specs       JSON            NOT NULL COMMENT 'SKU规格（快照）',
+    main_image      VARCHAR(255)    NOT NULL COMMENT '商品主图（快照）',
+    price           DECIMAL(10, 2)  NOT NULL COMMENT '商品单价（快照）',
+    quantity        INT             NOT NULL COMMENT '购买数量',
+    total_price     DECIMAL(10, 2)  NOT NULL COMMENT '商品总价 = price * quantity',
+
+    -- 售后状态
+    after_sale_status TINYINT       NOT NULL DEFAULT 0 COMMENT '售后状态：0无售后，1退款中，2退款成功，3退款失败，4换货中，5换货成功',
+
+    created_time    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+
+    PRIMARY KEY (id),
+    INDEX idx_order_id (order_id),
+    INDEX idx_sku_id (sku_id),
+    FOREIGN KEY (order_id) REFERENCES `order` (id) ON DELETE CASCADE,
+    FOREIGN KEY (sku_id) REFERENCES product_sku (id) ON DELETE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '订单商品明细表';
