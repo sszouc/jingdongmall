@@ -6,13 +6,17 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
+import com.jingdong.mall.model.dto.request.ProductListRequest;
 import com.jingdong.mall.model.dto.response.ProductDetailResponse;
+import com.jingdong.mall.model.dto.response.ProductListResponse;
+import com.jingdong.mall.model.dto.response.ProductSimpleResponse;
 import com.jingdong.mall.model.entity.Product;
 import com.jingdong.mall.model.entity.ProductSku;
 import com.jingdong.mall.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -52,6 +56,173 @@ public class ProductServiceImpl implements ProductService {
 
         // 4. 构建商品详情响应
         return buildProductDetailResponse(product, skus);
+    }
+
+    @Override
+    public ProductListResponse getProductList(ProductListRequest request) {
+        log.info("获取商品列表, 查询参数: {}", request);
+
+        try {
+            // 1. 参数校验
+            validateProductListRequest(request);
+
+            // 2. 查询商品列表
+            List<Product> products = productMapper.selectProductList(request);
+
+            // 3. 统计总数
+            Long total = productMapper.countProductList(request);
+
+            // 4. 转换为响应对象
+            List<ProductSimpleResponse> productSimpleList = convertToProductSimpleList(products);
+
+            // 5. 构建响应
+            ProductListResponse response = new ProductListResponse();
+            response.setProductSimple(productSimpleList);
+            response.setTotal(total);
+            response.setPage(request.getPage());
+            // 将pageSize转换为字符串类型，符合OpenAPI规范
+            response.setPageSize(String.valueOf(request.getPageSize()));
+
+            log.info("商品列表查询成功, 总记录数: {}, 当前页记录数: {}", total, productSimpleList.size());
+            return response;
+
+        } catch (BusinessException e) {
+            log.warn("获取商品列表业务异常: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("获取商品列表系统异常", e);
+            throw new BusinessException("获取商品列表失败，请稍后重试");
+        }
+    }
+
+    // 在 validateProductListRequest 方法中，修正正则表达式验证：
+    /**
+     * 验证商品列表查询请求参数
+     */
+    private void validateProductListRequest(ProductListRequest request) {
+        // 页码和页数验证
+        if (request.getPage() == null || request.getPage() <= 0) {
+            request.setPage(1);
+        }
+        if (request.getPageSize() == null || request.getPageSize() <= 0) {
+            request.setPageSize(10);
+        }
+        // 限制最大页数，防止查询过多数据
+        if (request.getPageSize() > 100) {
+            request.setPageSize(100);
+        }
+
+        // 价格验证
+        if (request.getMinPrice() != null && request.getMinPrice().compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw new BusinessException("最低价格不能小于0");
+        }
+        if (request.getMaxPrice() != null && request.getMaxPrice().compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw new BusinessException("最高价格不能小于0");
+        }
+        if (request.getMinPrice() != null && request.getMaxPrice() != null
+                && request.getMinPrice().compareTo(request.getMaxPrice()) > 0) {
+            throw new BusinessException("最低价格不能大于最高价格");
+        }
+
+        // 分类ID验证
+        if (request.getCategoryId() != null && request.getCategoryId() <= 0) {
+            throw new BusinessException("分类ID不合法");
+        }
+
+        // 排序方式验证
+        if (org.springframework.util.StringUtils.hasText(request.getSort())) {
+            String[] validSorts = {"price_asc", "price_desc", "created_desc", "sales_desc"};
+            boolean isValid = false;
+            for (String validSort : validSorts) {
+                if (validSort.equals(request.getSort())) {
+                    isValid = true;
+                    break;
+                }
+            }
+            if (!isValid) {
+                throw new BusinessException("排序方式不合法");
+            }
+        }
+    }
+
+    /**
+     * 将Product列表转换为ProductSimpleResponse列表
+     */
+    private List<ProductSimpleResponse> convertToProductSimpleList(List<Product> products) {
+        if (products == null || products.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return products.stream()
+                .map(this::convertToProductSimpleResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 将单个Product转换为ProductSimpleResponse
+     */
+    private ProductSimpleResponse convertToProductSimpleResponse(Product product) {
+        ProductSimpleResponse response = new ProductSimpleResponse();
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setDescription(product.getDescription());
+
+        // 设置价格：使用最低价格
+        response.setPrice(product.getMinPrice());
+
+        // 设置主图：取第一张图片
+        response.setImage(extractFirstImage(product.getMainImages()));
+
+        // 设置标签：取第一个标签
+        response.setTag(extractFirstTag(product.getTags()));
+
+        return response;
+    }
+
+    /**
+     * 从JSON字符串中提取第一张图片
+     */
+    private String extractFirstImage(String mainImagesJson) {
+        if (!StringUtils.hasText(mainImagesJson)) {
+            return "https://example.com/default-product.jpg";
+        }
+
+        try {
+            List<String> images = objectMapper.readValue(
+                    mainImagesJson,
+                    new TypeReference<List<String>>() {}
+            );
+            if (images != null && !images.isEmpty()) {
+                return images.get(0);
+            }
+        } catch (Exception e) {
+            log.warn("解析商品主图JSON失败: {}", mainImagesJson, e);
+        }
+
+        return "https://example.com/default-product.jpg";
+    }
+
+    /**
+     * 从JSON字符串中提取第一个标签
+     */
+    private String extractFirstTag(String tagsJson) {
+        if (!StringUtils.hasText(tagsJson)) {
+            return "商品";
+        }
+
+        try {
+            List<String> tags = objectMapper.readValue(
+                    tagsJson,
+                    new TypeReference<List<String>>() {}
+            );
+            if (tags != null && !tags.isEmpty()) {
+                return tags.get(0);
+            }
+        } catch (Exception e) {
+            log.warn("解析商品标签JSON失败: {}", tagsJson, e);
+        }
+
+        return "商品";
     }
 
     private ProductDetailResponse buildProductDetailResponse(Product product, List<ProductSku> skus) {

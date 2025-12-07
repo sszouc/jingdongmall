@@ -1,6 +1,7 @@
 package com.jingdong.mall.model.entity;
 
 import lombok.Data;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -42,4 +43,7 @@ public class Product {
     private Integer isActive;
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
+
+    // 商品最低价格（临时字段，不映射数据库）
+    private BigDecimal minPrice;
 }
