@@ -34,6 +34,7 @@ public enum ErrorCode {
     // 商品相关 (2000-2999)
     PRODUCT_NOT_EXIST(2001, "商品不存在"),
     PRODUCT_STOCK_NOT_ENOUGH(2002, "商品库存不足"),
+    PRODUCT_DETAIL_ERROR(2003, "获取商品详情失败"),
 
     // 订单相关 (3000-3999)
     ORDER_NOT_EXIST(3001, "订单不存在"),
