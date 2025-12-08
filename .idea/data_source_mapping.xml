@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/b6248881-e039-42ca-903f-a4267262b445/console.sql" value="b6248881-e039-42ca-903f-a4267262b445" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/jingdong/mall/mapper/AddressMapper.java" value="b6248881-e039-42ca-903f-a4267262b445" />
-    <file url="file://$PROJECT_DIR$/src/main/java/com/jingdong/mall/mapper/ProductSkuMapper.java" value="b6248881-e039-42ca-903f-a4267262b445" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/jingdong/mall/mapper/ProductSkuMapper.java" value="acfe0b8e-2c39-43ed-9d86-1d238b38ea31" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/jingdong/mall/mapper/TokenBlacklistMapper.java" value="b6248881-e039-42ca-903f-a4267262b445" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/jingdong/mall/mapper/UserMapper.java" value="b6248881-e039-42ca-903f-a4267262b445" />
     <file url="file://$PROJECT_DIR$/src/main/resources/db/schema.sql" value="b6248881-e039-42ca-903f-a4267262b445" />

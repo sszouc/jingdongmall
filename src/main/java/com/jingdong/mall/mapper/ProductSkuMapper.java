@@ -28,4 +28,8 @@ public interface ProductSkuMapper {
 
     @Select("SELECT MAX(price) FROM product_sku WHERE product_id = #{productId} AND is_active = 1")
     BigDecimal selectMaxPrice(@Param("productId") Integer productId);
+
+    // 新增：根据skuId查询单个SKU
+    @Select("SELECT * FROM product_sku WHERE id = #{skuId}")
+    ProductSku selectBySkuId(Integer skuId);
 }
