@@ -8,6 +8,7 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
 import com.jingdong.mall.mapper.ShoppingCartMapper;
+import com.jingdong.mall.model.dto.request.CartAddRequest;
 import com.jingdong.mall.model.dto.response.CartItemResponse;
 import com.jingdong.mall.model.dto.response.CartListResponse;
 import com.jingdong.mall.model.entity.Product;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -150,4 +152,58 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
         return specs;
     }
+
+    public CartItemResponse addCart(Long userId, CartAddRequest request) {
+        // 1. 参数校验
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        // 2. 验证商品和SKU有效性
+        ProductSku sku = productSkuMapper.selectBySkuId(request.getSkuId());
+        if (sku == null || sku.getIsActive() != 1) {
+            throw new BusinessException("商品SKU不存在或已下架");
+        }
+
+        Product product = productMapper.selectById(request.getProductId());
+        if (product == null || product.getIsActive() != 1) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+        }
+
+        // 3. 验证库存
+        if (sku.getStock() < request.getCount()) {
+            throw new BusinessException(ErrorCode.PRODUCT_STOCK_NOT_ENOUGH);
+        }
+
+        // 4. 查询用户是否已添加该SKU
+        List<ShoppingCart> existingCart = shoppingCartMapper.selectByUserId(userId);
+        ShoppingCart targetCart = existingCart.stream()
+                .filter(cart -> cart.getSkuId().equals(request.getSkuId()))
+                .findFirst()
+                .orElse(null);
+
+        // 5. 已存在则累加数量，不存在则新增
+        if (targetCart != null) {
+            int newCount = targetCart.getQuantity() + request.getCount();
+            if (newCount > sku.getStock()) {
+                throw new BusinessException(ErrorCode.PRODUCT_STOCK_NOT_ENOUGH);
+            }
+            targetCart.setQuantity(newCount);
+            targetCart.setUpdatedTime(LocalDateTime.now());
+            shoppingCartMapper.update(targetCart); // 需新增ShoppingCartMapper的update方法
+        } else {
+            targetCart = new ShoppingCart();
+            targetCart.setUserId(userId);
+            targetCart.setSkuId(request.getSkuId());
+            targetCart.setQuantity(request.getCount());
+            targetCart.setSelected(true); // 默认选中
+            targetCart.setCreatedTime(LocalDateTime.now());
+            targetCart.setUpdatedTime(LocalDateTime.now());
+            shoppingCartMapper.insert(targetCart); // 需新增ShoppingCartMapper的insert方法
+        }
+
+        // 6. 转换为响应DTO并返回
+        return convertToCartItemResponse(targetCart);
+    }
+
 }

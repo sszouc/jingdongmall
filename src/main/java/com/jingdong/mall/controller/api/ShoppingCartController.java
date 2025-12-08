@@ -5,18 +5,18 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
+import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.response.CartItemResponse;
 import com.jingdong.mall.model.dto.response.CartListResponse;
 import com.jingdong.mall.service.ShoppingCartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -57,5 +57,28 @@ public class ShoppingCartController {
             throw new BusinessException(ErrorCode.TOKEN_INVALID_FORMAT);
         }
         return authHeader.substring(7);
+    }
+
+    /**
+     * 新增：添加商品到购物车
+     */
+    @Operation(
+            summary = "添加商品到购物车",
+            description = "添加商品到购物车，若该SKU已存在则自动累加数量",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PostMapping("/add")
+    public Result<CartItemResponse> addCart(
+            @Parameter(description = "JWT认证令牌", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody CartAddRequest request) {
+        // 提取并验证Token（复用现有逻辑）
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 调用服务添加购物车
+        CartItemResponse response = shoppingCartService.addCart(userId, request);
+        return Result.success("商品添加到购物车成功", response);
     }
 }
