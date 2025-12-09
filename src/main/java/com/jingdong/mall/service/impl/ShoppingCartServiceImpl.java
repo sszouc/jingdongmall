@@ -88,16 +88,15 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private CartItemResponse convertToCartItemResponse(ShoppingCart cart) {
         CartItemResponse response = new CartItemResponse();
         response.setId(cart.getId().intValue());
-
         // 修复：用skuId查单个SKU
         ProductSku sku = productSkuMapper.selectBySkuId(cart.getSkuId());
         if (sku == null || sku.getIsActive() != 1) {
-            throw new BusinessException("商品SKU不存在或已下架");
+            throw new BusinessException(ErrorCode.SKU_NOT_EXIST);
         }
 
         Product product = productMapper.selectById(sku.getProductId());
         if (product == null || product.getIsActive() != 1) {
-            throw new BusinessException("商品不存在或已下架");
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
         }
 
         // 封装响应数据
@@ -158,11 +157,10 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         if (userId == null || userId <= 0) {
             throw new BusinessException(ErrorCode.USER_NOT_EXIST);
         }
-
         // 2. 验证商品和SKU有效性
         ProductSku sku = productSkuMapper.selectBySkuId(request.getSkuId());
         if (sku == null || sku.getIsActive() != 1) {
-            throw new BusinessException("商品SKU不存在或已下架");
+            throw new BusinessException(ErrorCode.SKU_NOT_EXIST);
         }
 
         Product product = productMapper.selectById(request.getProductId());
