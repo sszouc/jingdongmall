@@ -1,0 +1,21 @@
+# Maven 相关
+target/
+.mvn/
+mvnw
+mvnw.cmd
+.mvn/wrapper/
+
+# IDE 文件
+.idea/
+*.iml
+*.iws
+*.ipr
+*.swp
+*.swo
+*~
+
+# 编译文件
+*.class
+*.jar
+*.war
+*.ear

@@ -41,6 +41,7 @@ public enum ErrorCode {
     MAX_LOWER_MIN(2007,"最低价格不能大于最高价格"),
     CATEGORY_ID_INVALID(2008,"分类ID不合法"),
     SORT_INVALID(2009,"排序方式不合法"),
+    SKU_NOT_EXIST(2010,"SKU不存在"),
 
     // 订单相关 (3000-3999)
     ORDER_NOT_EXIST(3001, "订单不存在"),

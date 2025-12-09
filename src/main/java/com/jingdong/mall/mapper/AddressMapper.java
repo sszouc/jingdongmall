@@ -14,12 +14,6 @@ public interface AddressMapper {
             "FROM user_address " +
             "WHERE user_id = #{userId} AND status = 1 " +
             "ORDER BY is_default DESC, updated_time DESC")
-    @Results({
-            @Result(property = "postalCode", column = "postal_code"),
-            @Result(property = "isDefault", column = "is_default"),
-            @Result(property = "createdTime", column = "created_time"),
-            @Result(property = "updatedTime", column = "updated_time")
-    })
     List<Address> selectByUserId(@Param("userId") Long userId);
 
     @Select("SELECT COUNT(*) FROM user_address WHERE user_id = #{userId} AND status = 1")

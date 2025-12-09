@@ -1,4 +1,4 @@
-package com.jingdong.mall.mapper;
+package com.jingdong.mall.provider;
 
 import com.jingdong.mall.model.dto.request.ProductListRequest;
 import org.apache.ibatis.jdbc.SQL;
