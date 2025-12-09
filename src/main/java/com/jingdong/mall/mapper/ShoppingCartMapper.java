@@ -2,6 +2,7 @@
 package com.jingdong.mall.mapper;
 
 import com.jingdong.mall.model.entity.ShoppingCart;
+import com.jingdong.mall.provider.ShoppingCartSqlProvider;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -33,4 +34,16 @@ public interface ShoppingCartMapper {
             "updated_time = #{updatedTime} " +
             "WHERE id = #{id} AND user_id = #{userId}")
     int update(ShoppingCart shoppingCart);
+
+    /**
+     * 根据购物车ID列表查询购物车项
+     */
+    @SelectProvider(type = ShoppingCartSqlProvider.class, method = "selectByIds")
+    List<ShoppingCart> selectByIds(@Param("cartItemIds") List<Integer> cartItemIds, @Param("userId") Long userId);
+
+    /**
+     * 批量删除购物车项
+     */
+    @DeleteProvider(type = ShoppingCartSqlProvider.class, method = "batchDelete")
+    int batchDelete(@Param("cartItemIds") List<Integer> cartItemIds, @Param("userId") Long userId);
 }
