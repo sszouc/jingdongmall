@@ -56,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
             // 2. 查询购物车项
             List<ShoppingCart> cartItems = shoppingCartMapper.selectByIds(request.getCartItemIds(), userId);
             if (cartItems == null || cartItems.isEmpty()) {
-                throw new BusinessException("购物车项不存在或已删除");
+                throw new BusinessException(ErrorCode.CART_ITEM_NOT_EXIST);
             }
 
             // 3. 验证库存并计算总金额
@@ -67,18 +67,18 @@ public class OrderServiceImpl implements OrderService {
                 // 验证SKU
                 ProductSku sku = productSkuMapper.selectBySkuId(cartItem.getSkuId());
                 if (sku == null || sku.getIsActive() != 1) {
-                    throw new BusinessException("商品SKU不存在或已下架");
+                    throw new BusinessException(ErrorCode.SKU_NOT_EXIST);
                 }
 
                 // 验证库存
                 if (sku.getStock() < cartItem.getQuantity()) {
-                    throw new BusinessException("商品库存不足: " + sku.getId());
+                    throw new BusinessException(ErrorCode.CART_ITEM_STOCK_NOT_ENOUGH);
                 }
 
                 // 查询商品信息
                 Product product = productMapper.selectById(sku.getProductId());
                 if (product == null || product.getIsActive() != 1) {
-                    throw new BusinessException("商品不存在或已下架");
+                    throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
                 }
 
                 // 创建订单项
@@ -138,7 +138,7 @@ public class OrderServiceImpl implements OrderService {
 
             int orderResult = orderMapper.insert(order);
             if (orderResult <= 0) {
-                throw new BusinessException("创建订单失败");
+                throw new BusinessException(ErrorCode.ORDER_CREATE_FAILED);
             }
 
             // 7. 批量插入订单项
@@ -148,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
 
             int itemResult = orderItemMapper.batchInsert(orderItems);
             if (itemResult != orderItems.size()) {
-                throw new BusinessException("创建订单明细失败");
+                throw new BusinessException(ErrorCode.ORDER_CREATE_FAILED);
             }
 
             // 8. 删除购物车项
@@ -177,14 +177,14 @@ public class OrderServiceImpl implements OrderService {
             throw e;
         } catch (Exception e) {
             log.error("创建订单系统异常", e);
-            throw new BusinessException("创建订单失败，请稍后重试");
+            throw new BusinessException(ErrorCode.ORDER_CREATE_FAILED);
         }
     }
 
     private Address validateAddress(Long userId, Integer addressId) {
         log.info("验证地址：userId={}, addressId={}", userId, addressId);
         if (addressId == null) {
-            throw new BusinessException("地址ID不能为空");
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_EXIST);
         }
 
         List<Address> addresses = addressMapper.selectByUserId(userId);
@@ -197,7 +197,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (address == null) {
             log.warn("地址验证失败：地址不存在或不属于当前用户");
-            throw new BusinessException("地址不存在");
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_EXIST);
         }
 
         return address;
