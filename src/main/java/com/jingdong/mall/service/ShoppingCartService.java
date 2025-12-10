@@ -2,7 +2,10 @@
 package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartDeleteRequest;
 import com.jingdong.mall.model.dto.request.CartUpdateRequest;
+import com.jingdong.mall.model.dto.response.CartCountResponse;
+import com.jingdong.mall.model.dto.response.CartDeleteResponse;
 import com.jingdong.mall.model.dto.response.CartItemResponse;
 import com.jingdong.mall.model.dto.response.CartListResponse;
 
@@ -25,4 +28,10 @@ public interface ShoppingCartService {
      * @return 更新后的购物车条目
      */
     CartItemResponse updateCart(Long userId, CartUpdateRequest request);
+
+    // 新增：批量删除购物车商品
+    CartDeleteResponse deleteCartItems(Long userId, CartDeleteRequest request);
+
+    // 新增：获取购物车商品总数量
+    CartCountResponse getCartTotalCount(Long userId);
 }

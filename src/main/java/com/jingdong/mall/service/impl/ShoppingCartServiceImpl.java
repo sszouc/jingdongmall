@@ -9,7 +9,10 @@ import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
 import com.jingdong.mall.mapper.ShoppingCartMapper;
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartDeleteRequest;
 import com.jingdong.mall.model.dto.request.CartUpdateRequest;
+import com.jingdong.mall.model.dto.response.CartCountResponse;
+import com.jingdong.mall.model.dto.response.CartDeleteResponse;
 import com.jingdong.mall.model.dto.response.CartItemResponse;
 import com.jingdong.mall.model.dto.response.CartListResponse;
 import com.jingdong.mall.model.entity.Product;
@@ -259,5 +262,63 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         // 6. 查询更新后的完整数据并返回
         ShoppingCart updatedCart = shoppingCartMapper.selectByIdAndUserId(request.getId(), userId);
         return convertToCartItemResponse(updatedCart);
+    }
+
+    // 新增：批量删除购物车商品
+    @Override
+    @Transactional
+    public CartDeleteResponse deleteCartItems(Long userId, CartDeleteRequest request) {
+        // 1. 参数校验
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+        if (request.getIds() == null || request.getIds().isEmpty()) {
+            throw new BusinessException("购物车ID列表不能为空");
+        }
+
+        // 2. 校验购物车条目归属权（仅允许删除当前用户的购物车项）
+        List<ShoppingCart> cartItems = shoppingCartMapper.selectByIds(request.getIds(), userId);
+        if (cartItems.size() != request.getIds().size()) {
+            log.warn("用户 {} 尝试删除不属于自己的购物车项，请求ID数：{}，实际归属ID数：{}",
+                    userId, request.getIds().size(), cartItems.size());
+            throw new BusinessException("存在无效或不属于当前用户的购物车项");
+        }
+
+        // 3. 执行批量删除（复用ShoppingCartMapper已有的batchDelete方法）
+        int deletedCount = shoppingCartMapper.batchDelete(request.getIds(), userId);
+        if (deletedCount <= 0) {
+            throw new BusinessException("删除购物车商品失败，请稍后重试");
+        }
+
+        log.info("用户 {} 成功删除购物车项，删除数量：{}，删除ID列表：{}",
+                userId, deletedCount, request.getIds());
+
+        // 4. 构建并返回响应
+        return new CartDeleteResponse(deletedCount);
+    }
+
+    /**
+     * 新增：获取购物车商品总数量
+     * 逻辑：查询用户所有购物车条目，累加quantity字段得到总数量
+     */
+    @Override
+    public CartCountResponse getCartTotalCount(Long userId) {
+        // 1. 参数校验（复用现有校验逻辑，保持一致性）
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        // 2. 查询用户购物车列表（复用现有查询逻辑，避免重复代码）
+        List<ShoppingCart> cartList = shoppingCartMapper.selectByUserId(userId);
+
+        // 3. 统计总数量（累加所有条目的quantity）
+        Integer totalCount = cartList.stream()
+                .mapToInt(ShoppingCart::getQuantity) // 提取每个条目的数量
+                .sum(); // 求和
+
+        log.info("用户 {} 购物车商品总数量：{}", userId, totalCount);
+
+        // 4. 封装响应数据
+        return new CartCountResponse(totalCount);
     }
 }

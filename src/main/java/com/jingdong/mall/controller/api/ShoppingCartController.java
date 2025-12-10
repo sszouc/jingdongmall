@@ -6,7 +6,10 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartDeleteRequest;
 import com.jingdong.mall.model.dto.request.CartUpdateRequest;
+import com.jingdong.mall.model.dto.response.CartCountResponse;
+import com.jingdong.mall.model.dto.response.CartDeleteResponse;
 import com.jingdong.mall.model.dto.response.CartItemResponse;
 import com.jingdong.mall.model.dto.response.CartListResponse;
 import com.jingdong.mall.service.ShoppingCartService;
@@ -106,4 +109,53 @@ public class ShoppingCartController {
         CartItemResponse response = shoppingCartService.updateCart(userId, request);
         return Result.success("购物车更新成功", response);
     }
+
+    // 新增：批量删除购物车商品接口
+    @Operation(
+            summary = "批量删除购物车商品",
+            description = "删除当前登录用户的指定购物车条目（支持批量删除）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @DeleteMapping("/delete")
+    public Result<CartDeleteResponse> deleteCartItems(
+            @Parameter(description = "JWT认证令牌", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody CartDeleteRequest request) {
+        // 1. 提取并验证Token（复用项目现有逻辑）
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 2. 调用Service执行删除
+        CartDeleteResponse response = shoppingCartService.deleteCartItems(userId, request);
+
+        // 3. 返回成功响应
+        return Result.success("购物车商品删除成功", response);
+    }
+
+    /**
+     * 新增：获取购物车商品总数量
+     * 用于前端顶部角标显示
+     */
+    @Operation(
+            summary = "获取购物车商品总数量",
+            description = "统计当前登录用户购物车中所有商品的总数量（累加各条目数量）",
+            security = @SecurityRequirement(name = "bearerAuth") // 需登录授权
+    )
+    @GetMapping("/count") // 接口路径：/api/cart/count，符合项目API规范
+    public Result<CartCountResponse> getCartTotalCount(
+            @Parameter(description = "JWT认证令牌，格式：Bearer {token}", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader) {
+        // 1. 提取并验证Token（复用现有工具方法，避免重复代码）
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 2. 调用Service获取总数量
+        CartCountResponse response = shoppingCartService.getCartTotalCount(userId);
+
+        // 3. 封装响应结果（使用项目统一Result工具类）
+        return Result.success("购物车商品总数量获取成功", response);
+    }
+
 }
