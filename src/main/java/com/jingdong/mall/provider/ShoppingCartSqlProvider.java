@@ -115,4 +115,16 @@ public class ShoppingCartSqlProvider {
 
         return sql.toString();
     }
+
+    /**
+     * 生成清空指定用户购物车的SQL
+     * 只删除数量>0的有效条目（避免删除无效数据）
+     */
+    public String clearCartByUserId(Long userId) {
+        SQL sql = new SQL();
+        sql.DELETE_FROM("shopping_cart");
+        sql.WHERE("user_id = #{userId}");
+        sql.WHERE("quantity > 0"); // 只删除有效条目（数量>0）
+        return sql.toString();
+    }
 }

@@ -45,4 +45,11 @@ public interface ShoppingCartService {
      * @return 删除结果响应（包含删除数量）
      */
     CartDeleteBySkuResponse deleteCartBySkuId(Long userId, CartDeleteBySkuRequest request);
+
+    /**
+     * 清空当前用户所有购物车条目
+     * @param userId 用户ID（从Token解析）
+     * @return 清空结果响应（包含成功清空数量）
+     */
+    CartClearResponse clearCart(Long userId);
 }

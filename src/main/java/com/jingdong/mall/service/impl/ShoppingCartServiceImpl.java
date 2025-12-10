@@ -391,4 +391,29 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         // 4. 封装响应结果（复用响应DTO格式）
         return new CartDeleteBySkuResponse(deletedCount);
     }
+
+    /**
+     * 清空购物车实现（移除CartClearRequest参数）
+     */
+    @Override
+    @Transactional
+    public CartClearResponse clearCart(Long userId) {
+        // 1. 复用现有用户ID校验逻辑，保持一致性
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        // 2. 执行清空操作（调用Mapper方法）
+        int clearedCount = shoppingCartMapper.clearCartByUserId(userId);
+        if (clearedCount <= 0) {
+            log.info("用户 {} 购物车已为空，无需清空", userId);
+            return new CartClearResponse(0);
+        }
+
+        // 3. 日志记录（复用现有日志格式）
+        log.info("用户 {} 成功清空购物车，共删除 {} 条购物车条目", userId, clearedCount);
+
+        // 4. 封装响应结果
+        return new CartClearResponse(clearedCount);
+    }
 }

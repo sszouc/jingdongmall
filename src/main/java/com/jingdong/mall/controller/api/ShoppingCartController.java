@@ -203,4 +203,29 @@ public class ShoppingCartController {
         // 3. 封装响应结果（使用项目统一Result工具类，保持响应格式一致）
         return Result.success("按SKU ID删除购物车商品成功", response);
     }
+
+    /**
+     * 清空购物车接口（无请求体改造版）
+     */
+    @Operation(
+            summary = "清空购物车",
+            description = "清空当前登录用户的所有购物车有效条目（数量>0的条目）",
+            security = @SecurityRequirement(name = "bearerAuth") // 需登录授权，与其他购物车接口一致
+    )
+    @DeleteMapping("/clear") // 接口路径：/api/cart/clear，符合项目API规范
+    public Result<CartClearResponse> clearCart(
+            @Parameter(description = "JWT认证令牌，格式：Bearer {token}", required = true,
+                    example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader) {
+        // 1. 复用现有Token提取工具方法，避免重复代码
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 2. 调用Service执行清空逻辑（无需传入request参数）
+        CartClearResponse response = shoppingCartService.clearCart(userId);
+
+        // 3. 封装响应结果（使用项目统一Result工具类，保持响应格式一致）
+        return Result.success("购物车清空成功", response);
+    }
 }

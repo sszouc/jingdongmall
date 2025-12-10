@@ -83,4 +83,12 @@ public interface ShoppingCartMapper {
      */
     @Delete("DELETE FROM shopping_cart WHERE user_id = #{userId} AND sku_id = #{skuId}")
     int deleteByUserIdAndSkuId(@Param("userId") Long userId, @Param("skuId") Integer skuId);
+
+    /**
+     * 清空指定用户的所有购物车条目
+     * @param userId 用户ID
+     * @return 成功清空的条目数量
+     */
+    @DeleteProvider(type = ShoppingCartSqlProvider.class, method = "clearCartByUserId")
+    int clearCartByUserId(@Param("userId") Long userId);
 }
