@@ -53,6 +53,7 @@ public enum ErrorCode {
     ORDER_ADDRESS_INVALID(3005, "收货地址无效"),
     ORDER_PAY_EXPIRED(3006, "订单支付已过期"),
     ORDER_CANCEL_FAILED(3007, "取消订单失败"),
+    ORDER_ACCESS_DENIED(3008, "无权访问该订单"),
 
 
     // 新增地址相关错误码（地址管理：4000-4999）
