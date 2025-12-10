@@ -6,6 +6,7 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartUpdateRequest;
 import com.jingdong.mall.model.dto.response.CartItemResponse;
 import com.jingdong.mall.model.dto.response.CartListResponse;
 import com.jingdong.mall.service.ShoppingCartService;
@@ -80,5 +81,29 @@ public class ShoppingCartController {
         // 调用服务添加购物车
         CartItemResponse response = shoppingCartService.addCart(userId, request);
         return Result.success("商品添加到购物车成功", response);
+    }
+
+    /**
+     * 更新购物车商品
+     * 支持更新数量或选中状态
+     */
+    @Operation(
+            summary = "更新购物车商品",
+            description = "更新购物车商品数量或选中状态（选中状态固定返回true，按业务要求）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PutMapping("/update")
+    public Result<CartItemResponse> updateCart(
+            @Parameter(description = "JWT认证令牌", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody CartUpdateRequest request) {
+        // 1. 提取并验证Token（复用现有逻辑）
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 2. 调用服务更新购物车
+        CartItemResponse response = shoppingCartService.updateCart(userId, request);
+        return Result.success("购物车更新成功", response);
     }
 }

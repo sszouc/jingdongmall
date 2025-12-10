@@ -9,6 +9,7 @@ import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
 import com.jingdong.mall.mapper.ShoppingCartMapper;
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartUpdateRequest;
 import com.jingdong.mall.model.dto.response.CartItemResponse;
 import com.jingdong.mall.model.dto.response.CartListResponse;
 import com.jingdong.mall.model.entity.Product;
@@ -18,6 +19,7 @@ import com.jingdong.mall.service.ShoppingCartService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
@@ -204,4 +206,58 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return convertToCartItemResponse(targetCart);
     }
 
+    /**
+     * 更新购物车商品（数量/选中状态）
+     */
+    @Override
+    @Transactional
+    public CartItemResponse updateCart(Long userId, CartUpdateRequest request) {
+        // 1. 参数校验
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+        if (!request.hasUpdatableField()) {
+            throw new BusinessException("请提供需要更新的字段（数量或选中状态）");
+        }
+
+        // 2. 校验购物车条目是否存在且归属当前用户
+        ShoppingCart cartItem = shoppingCartMapper.selectByIdAndUserId(request.getId(), userId);
+        if (cartItem == null) {
+            throw new BusinessException(ErrorCode.CART_ITEM_NOT_EXIST);
+        }
+
+        // 3. 校验库存（若更新数量）
+        ProductSku sku = null;
+        if (request.getCount() != null) {
+            sku = productSkuMapper.selectBySkuId(cartItem.getSkuId());
+            if (sku == null || sku.getIsActive() != 1) {
+                throw new BusinessException(ErrorCode.SKU_NOT_EXIST);
+            }
+            // 库存不足校验
+            if (sku.getStock() < request.getCount()) {
+                throw new BusinessException(ErrorCode.CART_ITEM_STOCK_NOT_ENOUGH);
+            }
+        }
+
+        // 4. 构建更新实体
+        ShoppingCart updateCart = new ShoppingCart();
+        updateCart.setId(cartItem.getId()); // 购物车ID
+        updateCart.setUserId(userId); // 用户ID（用于权限校验）
+        if (request.getCount() != null) {
+            updateCart.setQuantity(request.getCount()); // 更新数量
+        }
+        if (request.getSelected() != null) {
+            updateCart.setSelected(request.getSelected()); // 更新选中状态
+        }
+
+        // 5. 执行更新
+        int updateResult = shoppingCartMapper.updateCartItem(updateCart);
+        if (updateResult <= 0) {
+            throw new BusinessException("更新购物车失败，请稍后重试");
+        }
+
+        // 6. 查询更新后的完整数据并返回
+        ShoppingCart updatedCart = shoppingCartMapper.selectByIdAndUserId(request.getId(), userId);
+        return convertToCartItemResponse(updatedCart);
+    }
 }

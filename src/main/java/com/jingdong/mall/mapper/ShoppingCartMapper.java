@@ -46,4 +46,20 @@ public interface ShoppingCartMapper {
      */
     @DeleteProvider(type = ShoppingCartSqlProvider.class, method = "batchDelete")
     int batchDelete(@Param("cartItemIds") List<Integer> cartItemIds, @Param("userId") Long userId);
+
+    /**
+     * 更新购物车条目（数量/选中状态）
+     * 支持动态更新：只更新非空字段
+     */
+    @UpdateProvider(type = ShoppingCartSqlProvider.class, method = "updateCartItem")
+    int updateCartItem(ShoppingCart shoppingCart);
+
+    /**
+     * 根据购物车ID和用户ID查询单条购物车条目
+     * 用于更新前校验归属权和有效性
+     */
+    @Select("SELECT id, user_id, sku_id, quantity, selected, created_time, updated_time " +
+            "FROM shopping_cart " +
+            "WHERE id = #{cartId} AND user_id = #{userId} AND quantity > 0")
+    ShoppingCart selectByIdAndUserId(@Param("cartId") Integer cartId, @Param("userId") Long userId);
 }

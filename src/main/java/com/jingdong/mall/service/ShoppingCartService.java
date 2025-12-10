@@ -2,6 +2,7 @@
 package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartUpdateRequest;
 import com.jingdong.mall.model.dto.response.CartItemResponse;
 import com.jingdong.mall.model.dto.response.CartListResponse;
 
@@ -16,4 +17,12 @@ public interface ShoppingCartService {
 
     // 新增方法：添加商品到购物车
     CartItemResponse addCart(Long userId, CartAddRequest request);
+
+    /**
+     * 更新购物车商品（数量/选中状态）
+     * @param userId 用户ID（从Token解析）
+     * @param request 更新请求参数
+     * @return 更新后的购物车条目
+     */
+    CartItemResponse updateCart(Long userId, CartUpdateRequest request);
 }
