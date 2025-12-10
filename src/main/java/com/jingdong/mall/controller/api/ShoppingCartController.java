@@ -5,10 +5,7 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
-import com.jingdong.mall.model.dto.request.CartAddRequest;
-import com.jingdong.mall.model.dto.request.CartBatchSelectRequest;
-import com.jingdong.mall.model.dto.request.CartDeleteRequest;
-import com.jingdong.mall.model.dto.request.CartUpdateRequest;
+import com.jingdong.mall.model.dto.request.*;
 import com.jingdong.mall.model.dto.response.*;
 import com.jingdong.mall.service.ShoppingCartService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -179,5 +176,31 @@ public class ShoppingCartController {
 
         // 3. 封装响应结果（使用项目统一Result工具类）
         return Result.success("批量更新选中状态成功", response);
+    }
+
+    /**
+     * 按SKU ID删除购物车商品
+     */
+    @Operation(
+            summary = "按SKU ID删除购物车商品",
+            description = "删除当前登录用户购物车中指定SKU的所有商品（支持自动清理重复记录）",
+            security = @SecurityRequirement(name = "bearerAuth") // 需登录授权，与其他购物车接口一致
+    )
+    @DeleteMapping("/delete-by-sku")
+    public Result<CartDeleteBySkuResponse> deleteCartBySkuId(
+            @Parameter(description = "JWT认证令牌，格式：Bearer {token}", required = true,
+                    example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody CartDeleteBySkuRequest request) {
+        // 1. 提取并验证Token（复用现有工具方法，避免重复代码）
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 2. 调用Service执行删除逻辑
+        CartDeleteBySkuResponse response = shoppingCartService.deleteCartBySkuId(userId, request);
+
+        // 3. 封装响应结果（使用项目统一Result工具类，保持响应格式一致）
+        return Result.success("按SKU ID删除购物车商品成功", response);
     }
 }

@@ -8,10 +8,7 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
 import com.jingdong.mall.mapper.ShoppingCartMapper;
-import com.jingdong.mall.model.dto.request.CartAddRequest;
-import com.jingdong.mall.model.dto.request.CartBatchSelectRequest;
-import com.jingdong.mall.model.dto.request.CartDeleteRequest;
-import com.jingdong.mall.model.dto.request.CartUpdateRequest;
+import com.jingdong.mall.model.dto.request.*;
 import com.jingdong.mall.model.dto.response.*;
 import com.jingdong.mall.model.entity.Product;
 import com.jingdong.mall.model.entity.ProductSku;
@@ -360,5 +357,38 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
         // 4. 构建并返回响应
         return new CartBatchSelectResponse(updatedCount);
+    }
+
+    /**
+     * 按SKU ID删除购物车商品（实现）
+     */
+    @Override
+    @Transactional
+    public CartDeleteBySkuResponse deleteCartBySkuId(Long userId, CartDeleteBySkuRequest request) {
+        // 1. 参数校验（复用现有用户ID校验逻辑，保持一致性）
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+        if (request.getSkuId() == null || request.getSkuId() <= 0) {
+            throw new BusinessException("SKU ID不合法，请传入有效的正整数");
+        }
+
+        // 2. 校验SKU是否存在（避免删除不存在的SKU，提升用户体验）
+        ProductSku sku = productSkuMapper.selectBySkuId(request.getSkuId());
+        if (sku == null || sku.getIsActive() != 1) {
+            throw new BusinessException(ErrorCode.SKU_NOT_EXIST);
+        }
+
+        // 3. 执行删除（调用Mapper层新增方法）
+        int deletedCount = shoppingCartMapper.deleteByUserIdAndSkuId(userId, request.getSkuId());
+        if (deletedCount <= 0) {
+            throw new BusinessException("购物车中不存在该SKU的商品，无需删除");
+        }
+
+        log.info("用户 {} 按SKU ID {} 成功删除购物车商品，删除条目数量：{}",
+                userId, request.getSkuId(), deletedCount);
+
+        // 4. 封装响应结果（复用响应DTO格式）
+        return new CartDeleteBySkuResponse(deletedCount);
     }
 }
