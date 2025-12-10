@@ -23,4 +23,10 @@ public interface OrderMapper {
      */
     @Select("SELECT * FROM `order` WHERE order_sn = #{orderSn}")
     Order selectByOrderSn(String orderSn);
+
+    /**
+     * 根据订单号和用户ID查询订单
+     */
+    @Select("SELECT * FROM `order` WHERE order_sn = #{orderSn} AND user_id = #{userId}")
+    Order selectByOrderSnAndUserId(@Param("orderSn") String orderSn, @Param("userId") Long userId);
 }

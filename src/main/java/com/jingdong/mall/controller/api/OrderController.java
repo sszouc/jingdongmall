@@ -7,6 +7,7 @@ import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
 import com.jingdong.mall.model.dto.response.OrderCreateResponse;
+import com.jingdong.mall.model.dto.response.OrderDetailResponse;
 import com.jingdong.mall.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -63,7 +64,7 @@ public class OrderController {
     }
 
     /**
-     * 新增：单个商品创建订单（立即购买）
+     * 单个商品创建订单（立即购买）
      */
     @Operation(
             summary = "单个商品创建订单",
@@ -95,6 +96,42 @@ public class OrderController {
         } catch (Exception e) {
             log.error("创建单个商品订单系统异常", e);
             throw new BusinessException("创建订单失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 新增：获取订单详情
+     */
+    @Operation(
+            summary = "获取订单详情",
+            description = "根据订单号获取订单详细信息",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("/{orderSn}")
+    public Result<OrderDetailResponse> getOrderDetail(
+            @Parameter(description = "JWT认证令牌", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "订单号", required = true, example = "100014")
+            @PathVariable String orderSn) {
+
+        try {
+            // 提取并验证Token
+            String token = extractTokenFromHeader(authHeader);
+            String userIdStr = jwtUtil.getUserIdFromToken(token);
+            Long userId = Long.parseLong(userIdStr);
+
+            log.info("用户 {} 请求获取订单详情，订单号: {}", userId, orderSn);
+
+            // 调用Service获取订单详情
+            OrderDetailResponse response = orderService.getOrderDetail(userId, orderSn);
+
+            return Result.success("获取订单详情成功", response);
+        } catch (BusinessException e) {
+            log.warn("获取订单详情业务异常: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("获取订单详情系统异常", e);
+            throw new BusinessException("获取订单详情失败，请稍后重试");
         }
     }
 

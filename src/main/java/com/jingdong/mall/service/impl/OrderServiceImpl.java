@@ -8,6 +8,7 @@ import com.jingdong.mall.mapper.*;
 import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
 import com.jingdong.mall.model.dto.response.OrderCreateResponse;
+import com.jingdong.mall.model.dto.response.OrderDetailResponse;
 import com.jingdong.mall.model.entity.*;
 import com.jingdong.mall.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
@@ -285,6 +286,7 @@ public class OrderServiceImpl implements OrderService {
             // 10. 扣减库存（实际业务中可能需要预扣库存，这里简化处理）
             // TODO: 实际业务中需要考虑库存锁定机制
 
+
             // 11. 返回响应
             OrderCreateResponse response = new OrderCreateResponse();
             response.setOrderSn(orderSn);
@@ -303,6 +305,184 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.error("创建单个商品订单系统异常", e);
             throw new BusinessException(ErrorCode.ORDER_CREATE_FAILED);
+        }
+    }
+
+    @Override
+    public OrderDetailResponse getOrderDetail(Long userId, String orderSn) {
+        try {
+            log.info("获取订单详情: userId={}, orderSn={}", userId, orderSn);
+
+            // 1. 验证订单号和用户ID
+            if (orderSn == null || orderSn.trim().isEmpty()) {
+                throw new BusinessException("订单号不能为空");
+            }
+
+            // 2. 查询订单基本信息（确保订单属于当前用户）
+            Order order = orderMapper.selectByOrderSnAndUserId(orderSn, userId);
+            if (order == null) {
+                throw new BusinessException(ErrorCode.ORDER_NOT_EXIST);
+            }
+
+            // 3. 查询订单项列表
+            List<OrderItem> orderItems = orderItemMapper.selectByOrderId(order.getId());
+
+            // 4. 构建响应
+            OrderDetailResponse response = new OrderDetailResponse();
+            response.setOrder(convertToOrderDetailDTO(order));
+            response.setItems(convertToOrderItemDTOs(orderItems));
+
+            return response;
+
+        } catch (BusinessException e) {
+            log.warn("获取订单详情业务异常: userId={}, orderSn={}, message={}",
+                    userId, orderSn, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("获取订单详情系统异常: userId={}, orderSn={}", userId, orderSn, e);
+            throw new BusinessException("获取订单详情失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 将Order实体转换为OrderDetailDTO
+     */
+    private OrderDetailResponse.OrderDetailDTO convertToOrderDetailDTO(Order order) {
+        OrderDetailResponse.OrderDetailDTO dto = new OrderDetailResponse.OrderDetailDTO();
+
+        dto.setId(order.getId());
+        dto.setOrderSn(order.getOrderSn());
+        dto.setUserId(order.getUserId());
+        dto.setTotalAmount(order.getTotalAmount());
+        dto.setDiscountAmount(order.getDiscountAmount());
+        dto.setShippingFee(order.getShippingFee());
+        dto.setPayAmount(order.getPayAmount());
+        dto.setReceiverName(order.getReceiverName());
+        dto.setReceiverPhone(order.getReceiverPhone());
+        dto.setReceiverProvince(order.getReceiverProvince());
+        dto.setReceiverCity(order.getReceiverCity());
+        dto.setReceiverDistrict(order.getReceiverDistrict());
+        dto.setReceiverDetail(order.getReceiverDetail());
+        dto.setReceiverPostalCode(order.getReceiverPostalCode());
+
+        // 转换状态和支付方式为字符串
+        dto.setStatus(convertOrderStatusToString(order.getStatus()));
+        dto.setPaymentMethod(convertPaymentMethodToString(order.getPaymentMethod()));
+
+        dto.setPayTime(order.getPayTime());
+        dto.setShippingMethod(order.getShippingMethod());
+        dto.setTrackingNumber(order.getTrackingNumber());
+        dto.setShippingTime(order.getShippingTime());
+        dto.setConfirmTime(order.getConfirmTime());
+        dto.setCancelTime(order.getCancelTime());
+        dto.setCancelReason(order.getCancelReason());
+        dto.setBuyerRemark(order.getBuyerRemark());
+        dto.setCreatedAt(order.getCreatedTime());
+        dto.setUpdatedAt(order.getUpdatedTime());
+
+        return dto;
+    }
+
+    /**
+     * 将订单状态码转换为字符串
+     */
+    private String convertOrderStatusToString(Integer status) {
+        if (status == null) {
+            return "未知";
+        }
+
+        switch (status) {
+            case 0: return "待付款";
+            case 1: return "待发货";
+            case 2: return "待收货";
+            case 3: return "已完成";
+            case 4: return "已取消";
+            case 5: return "退款中";
+            case 6: return "退款成功";
+            case 7: return "退款失败";
+            default: return "未知";
+        }
+    }
+
+    /**
+     * 将支付方式码转换为字符串
+     */
+    private String convertPaymentMethodToString(Integer paymentMethod) {
+        if (paymentMethod == null) {
+            return "未支付";
+        }
+
+        switch (paymentMethod) {
+            case 0: return "未支付";
+            case 1: return "支付宝";
+            case 2: return "微信支付";
+            case 3: return "银行卡";
+            default: return "其他";
+        }
+    }
+
+    /**
+     * 将OrderItem列表转换为OrderItemDTO列表
+     */
+    private List<OrderDetailResponse.OrderItemDTO> convertToOrderItemDTOs(List<OrderItem> orderItems) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return orderItems.stream()
+                .map(this::convertToOrderItemDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 将OrderItem实体转换为OrderItemDTO
+     */
+    private OrderDetailResponse.OrderItemDTO convertToOrderItemDTO(OrderItem item) {
+        OrderDetailResponse.OrderItemDTO dto = new OrderDetailResponse.OrderItemDTO();
+
+        dto.setId(item.getId());
+        dto.setSkuId(item.getSkuId());
+        dto.setProductName(item.getProductName());
+        dto.setMainImage(item.getMainImage());
+        dto.setPrice(item.getPrice());
+        dto.setQuantity(item.getQuantity());
+        dto.setTotalPrice(item.getTotalPrice());
+
+        // 转换售后状态
+        dto.setAfterSaleStatus(convertAfterSaleStatusToString(item.getAfterSaleStatus()));
+
+        // 解析规格JSON
+        if (item.getSkuSpecs() != null && !item.getSkuSpecs().isEmpty()) {
+            try {
+                Object specs = objectMapper.readValue(item.getSkuSpecs(), Object.class);
+                dto.setSkuSpecs(specs);
+            } catch (Exception e) {
+                log.warn("解析商品规格JSON失败: {}", item.getSkuSpecs(), e);
+                dto.setSkuSpecs(new HashMap<>());
+            }
+        } else {
+            dto.setSkuSpecs(new HashMap<>());
+        }
+
+        return dto;
+    }
+
+    /**
+     * 将售后状态码转换为字符串
+     */
+    private String convertAfterSaleStatusToString(Integer afterSaleStatus) {
+        if (afterSaleStatus == null) {
+            return null;
+        }
+
+        switch (afterSaleStatus) {
+            case 0: return null; // 无售后
+            case 1: return "退款中";
+            case 2: return "退款成功";
+            case 3: return "退款失败";
+            case 4: return "换货中";
+            case 5: return "换货成功";
+            default: return null;
         }
     }
 
