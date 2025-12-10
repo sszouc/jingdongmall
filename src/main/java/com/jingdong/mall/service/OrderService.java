@@ -1,5 +1,6 @@
 package com.jingdong.mall.service;
 
+import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
 import com.jingdong.mall.model.dto.response.OrderCreateResponse;
 
@@ -12,4 +13,9 @@ public interface OrderService {
      * 批量创建订单（从购物车）
      */
     OrderCreateResponse createOrderFromCart(Long userId, OrderCreateFromCartRequest request);
+
+    /**
+     * 单个商品创建订单（立即购买）
+     */
+    OrderCreateResponse createOrder(Long userId, OrderCreateRequest request);
 }

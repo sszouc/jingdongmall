@@ -42,6 +42,8 @@ public enum ErrorCode {
     CATEGORY_ID_INVALID(2008,"分类ID不合法"),
     SORT_INVALID(2009,"排序方式不合法"),
     SKU_NOT_EXIST(2010,"SKU不存在"),
+    BUY_NOW_QUANTITY_INVALID(2011, "购买数量不合法"),
+    BUY_NOW_SPEC_INVALID(2012, "商品规格不合法"),
 
     // 订单相关 (3000-3999)
     ORDER_NOT_EXIST(3001, "订单不存在"),
