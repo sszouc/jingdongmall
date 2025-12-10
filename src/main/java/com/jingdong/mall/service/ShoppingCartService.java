@@ -1,10 +1,7 @@
 // src/main/java/com/jingdong/mall/service/ShoppingCartService.java
 package com.jingdong.mall.service;
 
-import com.jingdong.mall.model.dto.request.CartAddRequest;
-import com.jingdong.mall.model.dto.request.CartBatchSelectRequest;
-import com.jingdong.mall.model.dto.request.CartDeleteRequest;
-import com.jingdong.mall.model.dto.request.CartUpdateRequest;
+import com.jingdong.mall.model.dto.request.*;
 import com.jingdong.mall.model.dto.response.*;
 
 /**
@@ -40,4 +37,12 @@ public interface ShoppingCartService {
      * @return 批量更新响应（包含成功更新数量）
      */
     CartBatchSelectResponse batchUpdateSelectedStatus(Long userId, CartBatchSelectRequest request);
+
+    /**
+     * 按SKU ID删除购物车商品
+     * @param userId 用户ID（从Token解析）
+     * @param request 按SKU删除请求参数
+     * @return 删除结果响应（包含删除数量）
+     */
+    CartDeleteBySkuResponse deleteCartBySkuId(Long userId, CartDeleteBySkuRequest request);
 }

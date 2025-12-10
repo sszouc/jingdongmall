@@ -74,4 +74,13 @@ public interface ShoppingCartMapper {
     int batchUpdateSelectedStatus(@Param("cartItemIds") List<Integer> cartItemIds,
                                   @Param("userId") Long userId,
                                   @Param("selected") Boolean selected);
+
+    /**
+     * 按用户ID和SKU ID删除购物车条目
+     * @param userId 用户ID（从Token解析）
+     * @param skuId SKU ID（从请求参数获取）
+     * @return 成功删除的条目数量
+     */
+    @Delete("DELETE FROM shopping_cart WHERE user_id = #{userId} AND sku_id = #{skuId}")
+    int deleteByUserIdAndSkuId(@Param("userId") Long userId, @Param("skuId") Integer skuId);
 }
