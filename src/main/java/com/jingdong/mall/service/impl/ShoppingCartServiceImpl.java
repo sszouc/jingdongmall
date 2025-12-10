@@ -9,12 +9,10 @@ import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
 import com.jingdong.mall.mapper.ShoppingCartMapper;
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartBatchSelectRequest;
 import com.jingdong.mall.model.dto.request.CartDeleteRequest;
 import com.jingdong.mall.model.dto.request.CartUpdateRequest;
-import com.jingdong.mall.model.dto.response.CartCountResponse;
-import com.jingdong.mall.model.dto.response.CartDeleteResponse;
-import com.jingdong.mall.model.dto.response.CartItemResponse;
-import com.jingdong.mall.model.dto.response.CartListResponse;
+import com.jingdong.mall.model.dto.response.*;
 import com.jingdong.mall.model.entity.Product;
 import com.jingdong.mall.model.entity.ProductSku;
 import com.jingdong.mall.model.entity.ShoppingCart;
@@ -320,5 +318,47 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
         // 4. 封装响应数据
         return new CartCountResponse(totalCount);
+    }
+
+    /**
+     * 批量更新购物车选中状态（全选/取消全选）
+     */
+    @Override
+    @Transactional
+    public CartBatchSelectResponse batchUpdateSelectedStatus(Long userId, CartBatchSelectRequest request) {
+        // 1. 参数校验（复用现有校验逻辑，保持一致性）
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+        if (request.getIds() == null || request.getIds().isEmpty()) {
+            throw new BusinessException("购物车条目ID列表不能为空");
+        }
+        if (request.getSelected() == null) {
+            throw new BusinessException("选中状态不能为空");
+        }
+
+        // 2. 校验购物车条目归属权（仅允许更新当前用户的购物车项）
+        List<ShoppingCart> cartItems = shoppingCartMapper.selectByIds(request.getIds(), userId);
+        if (cartItems.size() != request.getIds().size()) {
+            log.warn("用户 {} 尝试更新不属于自己的购物车项，请求ID数：{}，实际归属ID数：{}",
+                    userId, request.getIds().size(), cartItems.size());
+            throw new BusinessException("存在无效或不属于当前用户的购物车项");
+        }
+
+        // 3. 执行批量更新（复用ShoppingCartMapper新增的batchUpdateSelectedStatus方法）
+        int updatedCount = shoppingCartMapper.batchUpdateSelectedStatus(
+                request.getIds(),
+                userId,
+                request.getSelected()
+        );
+        if (updatedCount <= 0) {
+            throw new BusinessException("批量更新选中状态失败，请稍后重试");
+        }
+
+        log.info("用户 {} 成功批量更新购物车选中状态，更新数量：{}，目标状态：{}，更新ID列表：{}",
+                userId, updatedCount, request.getSelected(), request.getIds());
+
+        // 4. 构建并返回响应
+        return new CartBatchSelectResponse(updatedCount);
     }
 }

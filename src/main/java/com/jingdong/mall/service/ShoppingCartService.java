@@ -2,12 +2,10 @@
 package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartBatchSelectRequest;
 import com.jingdong.mall.model.dto.request.CartDeleteRequest;
 import com.jingdong.mall.model.dto.request.CartUpdateRequest;
-import com.jingdong.mall.model.dto.response.CartCountResponse;
-import com.jingdong.mall.model.dto.response.CartDeleteResponse;
-import com.jingdong.mall.model.dto.response.CartItemResponse;
-import com.jingdong.mall.model.dto.response.CartListResponse;
+import com.jingdong.mall.model.dto.response.*;
 
 /**
  * 购物车服务接口
@@ -34,4 +32,12 @@ public interface ShoppingCartService {
 
     // 新增：获取购物车商品总数量
     CartCountResponse getCartTotalCount(Long userId);
+
+    /**
+     * 批量更新购物车选中状态
+     * @param userId 用户ID（从Token解析）
+     * @param request 批量更新请求参数
+     * @return 批量更新响应（包含成功更新数量）
+     */
+    CartBatchSelectResponse batchUpdateSelectedStatus(Long userId, CartBatchSelectRequest request);
 }

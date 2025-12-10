@@ -62,4 +62,16 @@ public interface ShoppingCartMapper {
             "FROM shopping_cart " +
             "WHERE id = #{cartId} AND user_id = #{userId} AND quantity > 0")
     ShoppingCart selectByIdAndUserId(@Param("cartId") Integer cartId, @Param("userId") Long userId);
+
+    /**
+     * 批量更新购物车选中状态
+     * @param cartItemIds 购物车条目ID列表
+     * @param userId 用户ID
+     * @param selected 目标选中状态
+     * @return 成功更新的数量
+     */
+    @UpdateProvider(type = ShoppingCartSqlProvider.class, method = "batchUpdateSelectedStatus")
+    int batchUpdateSelectedStatus(@Param("cartItemIds") List<Integer> cartItemIds,
+                                  @Param("userId") Long userId,
+                                  @Param("selected") Boolean selected);
 }

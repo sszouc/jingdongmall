@@ -6,12 +6,10 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.CartAddRequest;
+import com.jingdong.mall.model.dto.request.CartBatchSelectRequest;
 import com.jingdong.mall.model.dto.request.CartDeleteRequest;
 import com.jingdong.mall.model.dto.request.CartUpdateRequest;
-import com.jingdong.mall.model.dto.response.CartCountResponse;
-import com.jingdong.mall.model.dto.response.CartDeleteResponse;
-import com.jingdong.mall.model.dto.response.CartItemResponse;
-import com.jingdong.mall.model.dto.response.CartListResponse;
+import com.jingdong.mall.model.dto.response.*;
 import com.jingdong.mall.service.ShoppingCartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -158,4 +156,28 @@ public class ShoppingCartController {
         return Result.success("购物车商品总数量获取成功", response);
     }
 
+    /**
+     * 批量更新购物车选中状态（全选/取消全选）
+     */
+    @Operation(
+            summary = "批量更新购物车选中状态",
+            description = "批量更新购物车条目的选中状态（支持全选/取消全选）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PutMapping("/batch-select")
+    public Result<CartBatchSelectResponse> batchUpdateSelectedStatus(
+            @Parameter(description = "JWT认证令牌，格式：Bearer {token}", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody CartBatchSelectRequest request) {
+        // 1. 提取并验证Token（复用现有工具方法，避免重复代码）
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 2. 调用Service执行批量更新
+        CartBatchSelectResponse response = shoppingCartService.batchUpdateSelectedStatus(userId, request);
+
+        // 3. 封装响应结果（使用项目统一Result工具类）
+        return Result.success("批量更新选中状态成功", response);
+    }
 }

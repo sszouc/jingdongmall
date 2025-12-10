@@ -83,4 +83,36 @@ public class ShoppingCartSqlProvider {
 
         return sql.toString();
     }
+
+    /**
+     * 批量更新购物车选中状态的动态SQL
+     */
+    public String batchUpdateSelectedStatus(List<Integer> cartItemIds, Long userId, Boolean selected) {
+        SQL sql = new SQL();
+        sql.UPDATE("shopping_cart");
+        // 设置目标选中状态
+        sql.SET("selected = #{selected}");
+        // 每次更新必更更新时间
+        sql.SET("updated_time = NOW()");
+
+        // 条件：购物车ID列表、用户ID（确保只能更新自己的购物车）
+        sql.WHERE("user_id = #{userId}");
+
+        // 构建ID列表IN条件
+        if (cartItemIds != null && !cartItemIds.isEmpty()) {
+            StringBuilder ids = new StringBuilder();
+            for (int i = 0; i < cartItemIds.size(); i++) {
+                ids.append("#{cartItemIds[").append(i).append("]}");
+                if (i < cartItemIds.size() - 1) {
+                    ids.append(", ");
+                }
+            }
+            sql.WHERE("id IN (" + ids + ")");
+        }
+
+        // 只更新有效条目（数量>0）
+        sql.WHERE("quantity > 0");
+
+        return sql.toString();
+    }
 }
