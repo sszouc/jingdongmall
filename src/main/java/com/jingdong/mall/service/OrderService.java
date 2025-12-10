@@ -4,6 +4,8 @@ import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
 import com.jingdong.mall.model.dto.response.OrderCreateResponse;
 import com.jingdong.mall.model.dto.response.OrderDetailResponse;
+import com.jingdong.mall.model.dto.request.OrderListRequest;
+import com.jingdong.mall.model.dto.response.OrderListResponse;
 
 /**
  * 订单服务接口
@@ -27,4 +29,12 @@ public interface OrderService {
      * @return 订单详情
      */
     OrderDetailResponse getOrderDetail(Long userId, String orderSn);
+
+    /**
+     * 获取订单列表
+     * @param userId 用户ID
+     * @param request 查询请求参数
+     * @return 订单列表响应
+     */
+    OrderListResponse getOrderList(Long userId, OrderListRequest request);
 }

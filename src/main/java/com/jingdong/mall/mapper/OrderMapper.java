@@ -1,7 +1,12 @@
 package com.jingdong.mall.mapper;
 
+import com.jingdong.mall.model.dto.request.OrderListRequest;
 import com.jingdong.mall.model.entity.Order;
+import com.jingdong.mall.provider.OrderSqlProvider;
 import org.apache.ibatis.annotations.*;
+
+import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -29,4 +34,38 @@ public interface OrderMapper {
      */
     @Select("SELECT * FROM `order` WHERE order_sn = #{orderSn} AND user_id = #{userId}")
     Order selectByOrderSnAndUserId(@Param("orderSn") String orderSn, @Param("userId") Long userId);
+
+    /**
+     * 分页查询订单列表
+     * @param request 查询条件
+     * @param userId 用户ID
+     * @return 订单列表
+     */
+    @SelectProvider(type = OrderSqlProvider.class, method = "selectOrderList")
+    List<Order> selectOrderList(@Param("request") OrderListRequest request, @Param("userId") Long userId);
+
+    /**
+     * 统计符合条件的订单总数
+     * @param request 查询条件
+     * @param userId 用户ID
+     * @return 订单总数
+     */
+    @SelectProvider(type = OrderSqlProvider.class, method = "countOrderList")
+    Long countOrderList(@Param("request") OrderListRequest request, @Param("userId") Long userId);
+
+    /**
+     * 批量查询订单预览项
+     * @param orderIds 订单ID列表
+     * @return 预览项列表
+     */
+    @SelectProvider(type = OrderSqlProvider.class, method = "selectPreviewItemsByOrderIds")
+    List<Map<String, Object>> selectPreviewItemsByOrderIds(@Param("orderIds") List<Long> orderIds);
+
+    /**
+     * 统计每个订单的商品种类数
+     * @param orderIds 订单ID列表
+     * @return 订单ID和商品种类数的映射
+     */
+    @SelectProvider(type = OrderSqlProvider.class, method = "countItemsByOrderIds")
+    List<Map<String, Object>> countItemsByOrderIds(@Param("orderIds") List<Long> orderIds);
 }
