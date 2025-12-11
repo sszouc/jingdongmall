@@ -9,6 +9,8 @@ import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
 import com.jingdong.mall.model.dto.response.OrderCreateResponse;
 import com.jingdong.mall.model.dto.response.OrderDetailResponse;
+import com.jingdong.mall.model.dto.request.OrderListRequest;
+import com.jingdong.mall.model.dto.response.OrderListResponse;
 import com.jingdong.mall.model.entity.*;
 import com.jingdong.mall.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,135 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Override
+    public OrderListResponse getOrderList(Long userId, OrderListRequest request) {
+        try {
+            log.info("获取订单列表: userId={}, page={}, pageSize={}, status={}",
+                    userId, request.getPage(), request.getPageSize(), request.getStatus());
+
+            // 1. 分页查询订单列表
+            List<Order> orders = orderMapper.selectOrderList(request, userId);
+
+            if (orders == null || orders.isEmpty()) {
+                return buildEmptyResponse(request);
+            }
+
+            // 2. 收集订单ID
+            List<Long> orderIds = orders.stream()
+                    .map(Order::getId)
+                    .collect(Collectors.toList());
+
+            // 3. 批量查询每个订单的商品种类数
+            List<Map<String, Object>> itemCounts = orderMapper.countItemsByOrderIds(orderIds);
+            Map<Long, Integer> orderItemCountMap = new HashMap<>();
+            for (Map<String, Object> item : itemCounts) {
+                Long orderId = ((Number) item.get("order_id")).longValue();
+                Integer count = ((Number) item.get("item_count")).intValue();
+                orderItemCountMap.put(orderId, count);
+            }
+
+            // 4. 批量查询订单预览项（每个订单最多3个）
+            List<Map<String, Object>> previewItems = orderMapper.selectPreviewItemsByOrderIds(orderIds);
+
+            // 按订单ID分组预览项
+            Map<Long, List<OrderListResponse.PreviewItemDTO>> previewItemsMap = new HashMap<>();
+            for (Map<String, Object> item : previewItems) {
+                Long orderId = ((Number) item.get("order_id")).longValue();
+
+                // 每个订单最多取3个预览项
+                List<OrderListResponse.PreviewItemDTO> items = previewItemsMap.computeIfAbsent(
+                        orderId, k -> new ArrayList<>());
+
+                if (items.size() < 3) {
+                    OrderListResponse.PreviewItemDTO previewItem = new OrderListResponse.PreviewItemDTO();
+                    previewItem.setProductName((String) item.get("product_name"));
+                    previewItem.setMainImage((String) item.get("main_image"));
+                    previewItem.setQuantity(((Number) item.get("quantity")).intValue());
+                    items.add(previewItem);
+                }
+            }
+
+            // 5. 构建订单预览列表
+            List<OrderListResponse.OrderPreviewDTO> orderPreviews = orders.stream()
+                    .map(order -> convertToOrderPreviewDTO(order, orderItemCountMap, previewItemsMap))
+                    .collect(Collectors.toList());
+
+            // 6. 查询总记录数
+            Long total = orderMapper.countOrderList(request, userId);
+
+            // 7. 构建响应
+            OrderListResponse response = new OrderListResponse();
+            response.setTotal(total);
+            response.setPage(request.getPage());
+            response.setPageSize(request.getPageSize());
+            response.setOrders(orderPreviews);
+
+            log.info("获取订单列表成功: userId={}, total={}, currentSize={}",
+                    userId, total, orderPreviews.size());
+
+            return response;
+
+        } catch (BusinessException e) {
+            log.warn("获取订单列表业务异常: userId={}, message={}", userId, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("获取订单列表系统异常: userId={}", userId, e);
+            throw new BusinessException("获取订单列表失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 构建空响应
+     */
+    private OrderListResponse buildEmptyResponse(OrderListRequest request) {
+        OrderListResponse response = new OrderListResponse();
+        response.setTotal(0L);
+        response.setPage(request.getPage());
+        response.setPageSize(request.getPageSize());
+        response.setOrders(new ArrayList<>());
+        return response;
+    }
+
+    /**
+     * 将Order实体转换为OrderPreviewDTO
+     */
+    private OrderListResponse.OrderPreviewDTO convertToOrderPreviewDTO(
+            Order order,
+            Map<Long, Integer> itemCountMap,
+            Map<Long, List<OrderListResponse.PreviewItemDTO>> previewItemsMap) {
+
+        OrderListResponse.OrderPreviewDTO dto = new OrderListResponse.OrderPreviewDTO();
+        dto.setOrderSn(order.getOrderSn());
+        dto.setTotalAmount(order.getTotalAmount());
+        dto.setPayAmount(order.getPayAmount());
+        dto.setStatus(order.getStatus());
+        dto.setStatusText(getStatusText(order.getStatus()));
+        dto.setCreatedAt(order.getCreatedTime());
+        dto.setItemCount(itemCountMap.getOrDefault(order.getId(), 0));
+        dto.setPreviewItems(previewItemsMap.getOrDefault(order.getId(), new ArrayList<>()));
+
+        return dto;
+    }
+
+    /**
+     * 获取订单状态文本
+     */
+    private String getStatusText(Integer status) {
+        if (status == null) return "未知";
+
+        switch (status) {
+            case 0: return "待付款";
+            case 1: return "待发货";
+            case 2: return "待收货";
+            case 3: return "已完成";
+            case 4: return "已取消";
+            case 5: return "退款中";
+            case 6: return "退款成功";
+            case 7: return "退款失败";
+            default: return "未知";
+        }
+    }
 
     @Override
     @Transactional
@@ -391,17 +522,17 @@ public class OrderServiceImpl implements OrderService {
             return "未知";
         }
 
-        switch (status) {
-            case 0: return "待付款";
-            case 1: return "待发货";
-            case 2: return "待收货";
-            case 3: return "已完成";
-            case 4: return "已取消";
-            case 5: return "退款中";
-            case 6: return "退款成功";
-            case 7: return "退款失败";
-            default: return "未知";
-        }
+        return switch (status) {
+            case 0 -> "待付款";
+            case 1 -> "待发货";
+            case 2 -> "待收货";
+            case 3 -> "已完成";
+            case 4 -> "已取消";
+            case 5 -> "退款中";
+            case 6 -> "退款成功";
+            case 7 -> "退款失败";
+            default -> "未知";
+        };
     }
 
     /**
@@ -412,13 +543,13 @@ public class OrderServiceImpl implements OrderService {
             return "未支付";
         }
 
-        switch (paymentMethod) {
-            case 0: return "未支付";
-            case 1: return "支付宝";
-            case 2: return "微信支付";
-            case 3: return "银行卡";
-            default: return "其他";
-        }
+        return switch (paymentMethod) {
+            case 0 -> "未支付";
+            case 1 -> "支付宝";
+            case 2 -> "微信支付";
+            case 3 -> "银行卡";
+            default -> "其他";
+        };
     }
 
     /**
@@ -475,15 +606,15 @@ public class OrderServiceImpl implements OrderService {
             return null;
         }
 
-        switch (afterSaleStatus) {
-            case 0: return null; // 无售后
-            case 1: return "退款中";
-            case 2: return "退款成功";
-            case 3: return "退款失败";
-            case 4: return "换货中";
-            case 5: return "换货成功";
-            default: return null;
-        }
+        return switch (afterSaleStatus) {
+            case 0 -> null; // 无售后
+            case 1 -> "退款中";
+            case 2 -> "退款成功";
+            case 3 -> "退款失败";
+            case 4 -> "换货中";
+            case 5 -> "换货成功";
+            default -> null;
+        };
     }
 
     private Address validateAddress(Long userId, Integer addressId) {
