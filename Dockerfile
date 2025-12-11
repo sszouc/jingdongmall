@@ -8,15 +8,17 @@ COPY src ./src
 # 编译并打包，跳过测试
 RUN mvn clean package -DskipTests
 
-FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/openjdk:25-jdk-slim
-# 设置工作目录
+# 第二阶段：运行（关键修复在这里！）
+FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/openjdk:25-jre-slim
 WORKDIR /app
 
-# 复制JAR文件
-COPY target/jingdongmall-0.0.1-SNAPSHOT.jar app.jar
+# 正确：从第一阶段（builder）复制构建好的JAR包
+# 注意：这里使用的是 --from=builder，路径是第一阶段容器内的路径
+COPY --from=builder /app/target/jingdongmall-*.jar app.jar
 
-# 暴露端口（根据你的应用端口修改）
+# 设置时区
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 EXPOSE 8080
-
-# 启动应用
 ENTRYPOINT ["java", "-jar", "app.jar"]
