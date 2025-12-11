@@ -124,6 +124,7 @@ public class ShoppingCartController {
         // 2. 调用Service执行删除
         CartDeleteResponse response = shoppingCartService.deleteCartItems(userId, request);
 
+
         // 3. 返回成功响应
         return Result.success("购物车商品删除成功", response);
     }
@@ -186,19 +187,18 @@ public class ShoppingCartController {
             description = "删除当前登录用户购物车中指定SKU的所有商品（支持自动清理重复记录）",
             security = @SecurityRequirement(name = "bearerAuth") // 需登录授权，与其他购物车接口一致
     )
-    @DeleteMapping("/delete-by-sku")
+    @DeleteMapping("/delete-by-sku/{skuId}")
     public Result<CartDeleteBySkuResponse> deleteCartBySkuId(
             @Parameter(description = "JWT认证令牌，格式：Bearer {token}", required = true,
                     example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
             @RequestHeader("Authorization") String authHeader,
-            @Valid @RequestBody CartDeleteBySkuRequest request) {
+            @PathVariable Integer skuId) {
         // 1. 提取并验证Token（复用现有工具方法，避免重复代码）
         String token = extractTokenFromHeader(authHeader);
         String userIdStr = jwtUtil.getUserIdFromToken(token);
         Long userId = Long.parseLong(userIdStr);
-
         // 2. 调用Service执行删除逻辑
-        CartDeleteBySkuResponse response = shoppingCartService.deleteCartBySkuId(userId, request);
+        CartDeleteBySkuResponse response = shoppingCartService.deleteCartBySkuId(userId, skuId);
 
         // 3. 封装响应结果（使用项目统一Result工具类，保持响应格式一致）
         return Result.success("按SKU ID删除购物车商品成功", response);

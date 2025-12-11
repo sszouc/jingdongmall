@@ -364,29 +364,29 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
      */
     @Override
     @Transactional
-    public CartDeleteBySkuResponse deleteCartBySkuId(Long userId, CartDeleteBySkuRequest request) {
+    public CartDeleteBySkuResponse deleteCartBySkuId(Long userId, Integer skuId) {
         // 1. 参数校验（复用现有用户ID校验逻辑，保持一致性）
         if (userId == null || userId <= 0) {
             throw new BusinessException(ErrorCode.USER_NOT_EXIST);
         }
-        if (request.getSkuId() == null || request.getSkuId() <= 0) {
-            throw new BusinessException("SKU ID不合法，请传入有效的正整数");
+        if (skuId == null || skuId <= 0) {
+            throw new BusinessException(ErrorCode.SKU_INVALID);
         }
 
         // 2. 校验SKU是否存在（避免删除不存在的SKU，提升用户体验）
-        ProductSku sku = productSkuMapper.selectBySkuId(request.getSkuId());
+        ProductSku sku = productSkuMapper.selectBySkuId(skuId);
         if (sku == null || sku.getIsActive() != 1) {
             throw new BusinessException(ErrorCode.SKU_NOT_EXIST);
         }
 
         // 3. 执行删除（调用Mapper层新增方法）
-        int deletedCount = shoppingCartMapper.deleteByUserIdAndSkuId(userId, request.getSkuId());
+        int deletedCount = shoppingCartMapper.deleteByUserIdAndSkuId(userId, skuId);
         if (deletedCount <= 0) {
-            throw new BusinessException("购物车中不存在该SKU的商品，无需删除");
+            throw new BusinessException(ErrorCode.SKU_NOT_IN_CART);
         }
 
         log.info("用户 {} 按SKU ID {} 成功删除购物车商品，删除条目数量：{}",
-                userId, request.getSkuId(), deletedCount);
+                userId, skuId, deletedCount);
 
         // 4. 封装响应结果（复用响应DTO格式）
         return new CartDeleteBySkuResponse(deletedCount);

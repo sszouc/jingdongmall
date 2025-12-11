@@ -44,6 +44,8 @@ public enum ErrorCode {
     SKU_NOT_EXIST(2010,"SKU不存在"),
     BUY_NOW_QUANTITY_INVALID(2011, "购买数量不合法"),
     BUY_NOW_SPEC_INVALID(2012, "商品规格不合法"),
+    SKU_INVALID(2013,"SKU不合法"),
+    SKU_NOT_IN_CART(2014,"SKU不在购物车内"),
 
     // 订单相关 (3000-3999)
     ORDER_NOT_EXIST(3001, "订单不存在"),

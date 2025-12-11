@@ -41,10 +41,10 @@ public interface ShoppingCartService {
     /**
      * 按SKU ID删除购物车商品
      * @param userId 用户ID（从Token解析）
-     * @param request 按SKU删除请求参数
+     * @param skuId 按skuID删除请求参数
      * @return 删除结果响应（包含删除数量）
      */
-    CartDeleteBySkuResponse deleteCartBySkuId(Long userId, CartDeleteBySkuRequest request);
+    CartDeleteBySkuResponse deleteCartBySkuId(Long userId, Integer skuId);
 
     /**
      * 清空当前用户所有购物车条目
