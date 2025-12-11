@@ -9,7 +9,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # 第二阶段：运行（关键修复在这里！）
-FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/openjdk:25-jre-slim
+FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/openjdk:25-jdk-slim
 WORKDIR /app
 
 # 正确：从第一阶段（builder）复制构建好的JAR包
