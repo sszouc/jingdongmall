@@ -164,17 +164,17 @@ public class OrderServiceImpl implements OrderService {
     private String getStatusText(Integer status) {
         if (status == null) return "未知";
 
-        switch (status) {
-            case 0: return "待付款";
-            case 1: return "待发货";
-            case 2: return "待收货";
-            case 3: return "已完成";
-            case 4: return "已取消";
-            case 5: return "退款中";
-            case 6: return "退款成功";
-            case 7: return "退款失败";
-            default: return "未知";
-        }
+        return switch (status) {
+            case 0 -> "待付款";
+            case 1 -> "待发货";
+            case 2 -> "待收货";
+            case 3 -> "已完成";
+            case 4 -> "已取消";
+            case 5 -> "退款中";
+            case 6 -> "退款成功";
+            case 7 -> "退款失败";
+            default -> "未知";
+        };
     }
 
     @Override
