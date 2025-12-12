@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean signout(String token, long userId) {
+    public void signout(String token, long userId) {
         try {
             // 计算token的SHA256哈希值
             String tokenHash = calculateTokenHash(token);
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
             // 检查token是否已经在黑名单中
             if (tokenBlacklistMapper.existsByTokenHash(tokenHash) > 0) {
                 log.warn("Token already in blacklist: hash={}", tokenHash);
-                return false;
+                throw new BusinessException(ErrorCode.TOKEN_EXPIRED);
             }
 
             // 创建黑名单记录
@@ -60,10 +60,8 @@ public class UserServiceImpl implements UserService {
             int result = tokenBlacklistMapper.insert(blacklistRecord);
             if (result > 0) {
                 log.info("Token added to blacklist: userId={}, reason=LOGOUT", userId);
-                return true;
             }
 
-            return false;
         } catch (Exception e) {
             log.error("Failed to add token to blacklist", e);
             throw new BusinessException("退出登录失败，请重试");
@@ -91,7 +89,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserInfoResponse updateUserInfo(long userId, UserUpdateRequest request) {
+    public void updateUserInfo(long userId, UserUpdateRequest request) {
         try {
             // 验证请求参数
             if (request == null || !request.isAnyFieldPresent()) {
@@ -137,11 +135,9 @@ public class UserServiceImpl implements UserService {
                 hasUpdates = true;
             }
 
-            // 更新手机号
             if (StringUtils.hasText(request.getPhone())) {
-
                 // 检查手机号是否已被其他用户使用
-                int phoneCount = userMapper.countByPhone(request.getPhone());
+                int phoneCount = userMapper.countByPhoneExcludingUser(request.getPhone(), user.getId());
                 if (phoneCount > 0) {
                     throw new BusinessException(ErrorCode.PHONE_EXISTED);
                 }
@@ -152,7 +148,7 @@ public class UserServiceImpl implements UserService {
             // 更新邮箱
             if (StringUtils.hasText(request.getEmail())) {
                 // 检查邮箱是否已被其他用户使用
-                int emailCount = userMapper.countByEmail(request.getEmail());
+                int emailCount = userMapper.countByEmailExcludingUser(request.getEmail(), user.getId());
                 if (emailCount > 0) {
                     throw new BusinessException(ErrorCode.EMAIL_EXISTED);
                 }
@@ -160,9 +156,9 @@ public class UserServiceImpl implements UserService {
                 hasUpdates = true;
             }
 
-            // 如果没有实际更新，直接返回当前用户信息
+            // 如果没有实际更新，直接返回
             if (!hasUpdates) {
-                return UserInfoResponse.fromEntity(user);
+                return ;
             }
 
             // 更新时间戳
@@ -176,9 +172,6 @@ public class UserServiceImpl implements UserService {
 
             log.info("User info updated: userId={}", userId);
 
-            // 重新查询获取最新数据
-            User updatedUser = userMapper.selectById(userId);
-            return UserInfoResponse.fromEntity(updatedUser);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
@@ -189,36 +182,27 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean changePassword(long userId, String oldPassword, String newPassword) {
+    public void changePassword(long userId, String oldPassword, String newPassword) {
         try {
             log.info("开始修改密码: userId={}", userId);
 
-            // 1. 参数校验
-            if (oldPassword == null || oldPassword.trim().isEmpty()) {
-                throw new BusinessException("旧密码不能为空");
-            }
-
-            if (newPassword == null || newPassword.trim().isEmpty()) {
-                throw new BusinessException("新密码不能为空");
-            }
-
-            // 2. 新旧密码不能相同
+            // 1. 新旧密码不能相同
             if (oldPassword.equals(newPassword)) {
-                throw new BusinessException("新密码不能与旧密码相同");
+                throw new BusinessException(ErrorCode.NEW_OLD_UNEQUAL);
             }
 
-            // 3. 获取用户信息
+            // 2. 获取用户信息
             User user = userMapper.selectById(userId);
             if (user == null) {
                 throw new BusinessException(ErrorCode.USER_NOT_EXIST);
             }
 
-            // 4. 检查用户状态
+            // 3. 检查用户状态
             if (user.getStatus() != User.Status.ENABLED) {
                 throw new BusinessException(ErrorCode.USER_DISABLED);
             }
 
-            // 5. 验证旧密码
+            // 4. 验证旧密码
             log.debug("验证旧密码: userId={}, 输入密码长度={}, 数据库密码长度={}",
                     userId, oldPassword.length(),
                     user.getPassword() != null ? user.getPassword().length() : 0);
@@ -230,17 +214,11 @@ public class UserServiceImpl implements UserService {
 
             log.info("旧密码验证成功: userId={}", userId);
 
-            // 6. 验证新密码复杂度
-            if (!isValidPassword(newPassword)) {
-                log.warn("新密码不符合复杂度要求: userId={}, password={}", userId, newPassword);
-                throw new BusinessException("新密码必须包含字母和数字，长度6-20位");
-            }
-
-            // 7. 加密新密码
+            // 6. 加密新密码
             String encodedNewPassword = passwordEncoder.encode(newPassword);
             log.debug("新密码加密完成: userId={}", userId);
 
-            // 8. 更新密码
+            // 7. 更新密码
             LocalDateTime updatedTime = LocalDateTime.now();
             int result = userMapper.updatePasswordById(
                     user.getId(),
@@ -250,10 +228,9 @@ public class UserServiceImpl implements UserService {
 
             if (result > 0) {
                 log.info("密码修改成功: userId={}", userId);
-                return true;
             } else {
                 log.error("密码更新失败，数据库返回0: userId={}", userId);
-                throw new BusinessException("密码修改失败，请稍后重试");
+                throw new BusinessException(ErrorCode.PASSWORD_ERROR);
             }
         } catch (BusinessException e) {
             log.warn("修改密码业务异常: userId={}, message={}", userId, e.getMessage());
@@ -262,42 +239,6 @@ public class UserServiceImpl implements UserService {
             log.error("修改密码系统异常", e);
             throw new BusinessException("密码修改失败");
         }
-    }
-
-    /**
-     * 验证密码复杂度
-     */
-    private boolean isValidPassword(String password) {
-        if (password == null || password.trim().isEmpty()) {
-            return false;
-        }
-
-        // 去除空格
-        String pwd = password.trim();
-
-        // 长度检查
-        if (pwd.length() < 6 || pwd.length() > 20) {
-            return false;
-        }
-
-        // 必须包含字母和数字
-        boolean hasLetter = false;
-        boolean hasDigit = false;
-
-        for (char c : pwd.toCharArray()) {
-            if (Character.isLetter(c)) {
-                hasLetter = true;
-            } else if (Character.isDigit(c)) {
-                hasDigit = true;
-            }
-
-            // 同时满足字母和数字，提前结束
-            if (hasLetter && hasDigit) {
-                break;
-            }
-        }
-
-        return hasLetter && hasDigit;
     }
 
     /**

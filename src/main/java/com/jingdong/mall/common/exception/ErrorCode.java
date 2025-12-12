@@ -31,6 +31,9 @@ public enum ErrorCode {
     TOKEN_INVALID_SIGNATURE(1014,"Token签名无效"),
     TOKEN_ERROR(1015,"Token验证失败"),
     INFO_UPDATE_FAIL(1016,"用户信息更新失败"),
+    NEW_OLD_UNEQUAL(1017,"新密码不能与旧密码相同"),
+    PASSWORD_CHANGE_FAIL(1018,"密码修改失败"),
+
 
 
     // 商品相关 (2000-2999)
@@ -65,6 +68,7 @@ public enum ErrorCode {
     ADDRESS_ADD_FAILED(4002, "新增地址失败"),
     ADDRESS_UPDATE_FAILED(4003, "修改地址失败"),
     ADDRESS_DELETE_FAILED(4004, "删除地址失败"),
+    ADDRESS_ID_NOT_NULL(4005,"地址ID不能为空"),
 
     // 购物车相关 (5000-5999)
     CART_ITEM_NOT_EXIST(5001, "购物车项不存在"),

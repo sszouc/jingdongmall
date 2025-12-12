@@ -24,6 +24,12 @@ public interface UserMapper {
     @Select("SELECT * FROM user WHERE phone = #{phone} OR email = #{email}")
     User selectByPhoneOrEmail(String account);
 
+    @Select("SELECT COUNT(*) FROM user WHERE phone = #{phone} AND id != #{excludeId}")
+    int countByPhoneExcludingUser(@Param("phone") String phone, @Param("excludeId") Long excludeId);
+
+    @Select("SELECT COUNT(*) FROM user WHERE email = #{email} AND id != #{excludeId}")
+    int countByEmailExcludingUser(@Param("email") String email, @Param("excludeId") Long excludeId);
+
     @Update("UPDATE user SET password = #{password}, updated_time = #{updatedTime} WHERE id = #{id}")
     int updatePasswordById(@Param("id") Long id,
                            @Param("password") String password,

@@ -12,9 +12,8 @@ public interface UserService {
      * 退出登录
      * @param token JWT令牌
      * @param userId 用户ID
-     * @return 是否成功
      */
-    boolean signout(String token, long userId);
+    void signout(String token, long userId);
 
     /**
      * 获取用户信息
@@ -27,16 +26,14 @@ public interface UserService {
      * 更新用户信息
      * @param userId 用户ID
      * @param request 更新请求
-     * @return 更新后的用户信息响应
      */
-    UserInfoResponse updateUserInfo(long userId, UserUpdateRequest request);
+    void updateUserInfo(long userId, UserUpdateRequest request);
 
     /**
      * 修改密码
      * @param userId 用户ID
      * @param oldPassword 旧密码
      * @param newPassword 新密码
-     * @return 是否成功
      */
-    boolean changePassword(long userId, String oldPassword, String newPassword);
+    void changePassword(long userId, String oldPassword, String newPassword);
 }

@@ -39,7 +39,7 @@ public class UserUpdateRequest {
     /**
      * 生日
      */
-    @Past(message = "生日不能是未来日期")
+    @PastOrPresent(message = "生日不能是未来日期")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
 

@@ -64,7 +64,7 @@ public class AddressServiceImpl implements AddressService {
         // 3. 保存地址
         int result = addressMapper.insert(address);
         if (result <= 0) {
-            throw new BusinessException("新增地址失败，请稍后重试");
+            throw new BusinessException(ErrorCode.ADDRESS_ADD_FAILED);
         }
 
         // 4. 返回新增地址信息
@@ -84,7 +84,7 @@ public class AddressServiceImpl implements AddressService {
             throw new BusinessException(ErrorCode.USER_NOT_EXIST);
         }
         if (request.getId() == null) {
-            throw new BusinessException("地址ID不能为空");
+            throw new BusinessException(ErrorCode.ADDRESS_ID_NOT_NULL);
         }
 
         // 2. 检查地址是否存在
@@ -92,7 +92,7 @@ public class AddressServiceImpl implements AddressService {
         boolean addressExists = addresses.stream()
                 .anyMatch(a -> a.getId().equals(request.getId()));
         if (!addressExists) {
-            throw new BusinessException("地址不存在");
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_EXIST);
         }
 
         // 3. 如果设置为默认地址，先取消用户现有默认地址
@@ -118,7 +118,7 @@ public class AddressServiceImpl implements AddressService {
         // 4. 更新地址
         int result = addressMapper.update(address);
         if (result <= 0) {
-            throw new BusinessException("修改地址失败，请稍后重试");
+            throw new BusinessException(ErrorCode.ADDRESS_UPDATE_FAILED);
         }
 
         // 5. 返回更新后地址信息
@@ -138,7 +138,7 @@ public class AddressServiceImpl implements AddressService {
             throw new BusinessException(ErrorCode.USER_NOT_EXIST);
         }
         if (addressId == null) {
-            throw new BusinessException("地址ID不能为空");
+            throw new BusinessException(ErrorCode.ADDRESS_ID_NOT_NULL);
         }
 
         // 2. 检查地址是否存在
@@ -146,13 +146,13 @@ public class AddressServiceImpl implements AddressService {
         boolean addressExists = addresses.stream()
                 .anyMatch(a -> a.getId().equals(addressId));
         if (!addressExists) {
-            throw new BusinessException("地址不存在");
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_EXIST);
         }
 
         // 3. 执行删除
         int result = addressMapper.deleteById(addressId, userId);
         if (result <= 0) {
-            throw new BusinessException("删除地址失败，请稍后重试");
+                throw new BusinessException(ErrorCode.ADDRESS_DELETE_FAILED);
         }
         return true;
     }

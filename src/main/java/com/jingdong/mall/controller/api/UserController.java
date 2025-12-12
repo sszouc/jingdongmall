@@ -41,24 +41,14 @@ public class UserController {
             throw new BusinessException(ErrorCode.TOKEN_ERROR, "缺少认证令牌");
         }
 
-        try {
-            String userIdStr = jwtUtil.getUserIdFromToken(token);
-            long userId = Long.parseLong(userIdStr);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        long userId = Long.parseLong(userIdStr);
 
-            boolean success = userService.signout(token, userId);
+        userService.signout(token, userId);
 
-            if (success) {
-                log.info("用户退出登录成功: userId={}", userId);
-                return Result.success("退出登录成功", null);
-            } else {
-                throw new BusinessException("退出登录失败，请重试");
-            }
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("退出登录异常", e);
-            throw new BusinessException("退出登录失败，请重试");
-        }
+        log.info("用户退出登录成功: userId={}", userId);
+        return Result.success("退出登录成功", null);
+
     }
 
     /**
@@ -66,25 +56,18 @@ public class UserController {
      */
     @GetMapping("/info")
     public Result<UserInfoResponse> getUserInfo(HttpServletRequest request) {
-        try {
-            String token = extractTokenFromRequest(request);
+        String token = extractTokenFromRequest(request);
 
-            if (token == null || token.isEmpty()) {
-                throw new BusinessException(ErrorCode.TOKEN_ERROR, "缺少认证令牌");
-            }
-
-            String userIdStr = jwtUtil.getUserIdFromToken(token);
-            long userId = Long.parseLong(userIdStr);
-
-            UserInfoResponse userInfo = userService.getUserInfo(userId);
-
-            return Result.success(userInfo);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("获取用户信息异常", e);
-            throw new BusinessException("获取用户信息失败");
+        if (token == null || token.isEmpty()) {
+            throw new BusinessException(ErrorCode.TOKEN_ERROR, "缺少认证令牌");
         }
+
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        long userId = Long.parseLong(userIdStr);
+
+        UserInfoResponse userInfo = userService.getUserInfo(userId);
+
+        return Result.success(userInfo);
     }
 
     /**
@@ -94,34 +77,20 @@ public class UserController {
     public Result<String> changePassword(
             @RequestBody @Valid ChangePasswordRequest request,
             HttpServletRequest httpRequest) {
-        try {
-            String token = extractTokenFromRequest(httpRequest);
 
-            if (token == null || token.isEmpty()) {
-                throw new BusinessException(ErrorCode.TOKEN_ERROR, "缺少认证令牌");
-            }
+        String token = extractTokenFromRequest(httpRequest);
 
-            String userIdStr = jwtUtil.getUserIdFromToken(token);
-            long userId = Long.parseLong(userIdStr);
-
-            boolean success = userService.changePassword(
-                    userId,
-                    request.getOldPassword(),
-                    request.getNewPassword()
-            );
-
-            if (success) {
-                log.info("密码修改成功: userId={}", userId);
-                return Result.success("密码修改成功", null);
-            } else {
-                throw new BusinessException("密码修改失败");
-            }
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("修改密码异常", e);
-            throw new BusinessException("修改密码失败");
+        if (token == null || token.isEmpty()) {
+            throw new BusinessException(ErrorCode.TOKEN_ERROR);
         }
+
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        long userId = Long.parseLong(userIdStr);
+
+        userService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
+
+        return Result.success("密码修改成功", null);
+
     }
 
     /**
@@ -131,29 +100,22 @@ public class UserController {
     public Result<String> updateUserInfo(
             @RequestBody @Valid UserUpdateRequest request,
             HttpServletRequest httpRequest) {
-        try {
-            // 验证token
-            String token = extractTokenFromRequest(httpRequest);
+        // 验证token
+        String token = extractTokenFromRequest(httpRequest);
 
-            if (token == null || token.isEmpty()) {
-                throw new BusinessException(ErrorCode.TOKEN_ERROR, "缺少认证令牌");
-            }
-
-            // 获取用户ID
-            String userIdStr = jwtUtil.getUserIdFromToken(token);
-            long userId = Long.parseLong(userIdStr);
-
-            // 更新用户信息
-            userService.updateUserInfo(userId, request);
-
-            log.info("用户信息更新成功: userId={}", userId);
-            return Result.success("信息更新成功",null);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("更新用户信息异常", e);
-            throw new BusinessException("更新用户信息失败");
+        if (token == null || token.isEmpty()) {
+            throw new BusinessException(ErrorCode.TOKEN_ERROR, "缺少认证令牌");
         }
+
+        // 获取用户ID
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        long userId = Long.parseLong(userIdStr);
+
+        // 更新用户信息
+        userService.updateUserInfo(userId, request);
+
+        log.info("用户信息更新成功: userId={}", userId);
+        return Result.success("信息更新成功", null);
     }
 
     /**
