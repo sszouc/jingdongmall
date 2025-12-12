@@ -30,6 +30,8 @@ public enum ErrorCode {
     TOKEN_INVALID_FORMAT(1013,"Token格式错误"),
     TOKEN_INVALID_SIGNATURE(1014,"Token签名无效"),
     TOKEN_ERROR(1015,"Token验证失败"),
+    INFO_UPDATE_FAIL(1016,"用户信息更新失败"),
+
 
     // 商品相关 (2000-2999)
     PRODUCT_NOT_EXIST(2001, "商品不存在"),

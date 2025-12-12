@@ -2,11 +2,9 @@
 package com.jingdong.mall.model.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 /**
@@ -14,6 +12,23 @@ import java.time.LocalDate;
  */
 @Data
 public class UserUpdateRequest {
+
+    /**
+     * 邮箱
+     */
+    @Email(message = "邮箱格式不正确")
+    private String email;
+
+    /**
+     * 用户名
+     */
+    private String username;
+
+    /**
+     * 手机号
+     */
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+    private String phone;
 
     /**
      * 头像URL
@@ -38,7 +53,7 @@ public class UserUpdateRequest {
      * 验证非空：至少更新一个字段
      */
     public boolean isAnyFieldPresent() {
-        return avatar != null || birthday != null || gender != null;
+        return avatar != null || birthday != null || gender != null || email != null || phone != null;
     }
 
     /**

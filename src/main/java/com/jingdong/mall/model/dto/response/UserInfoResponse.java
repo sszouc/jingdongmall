@@ -27,6 +27,11 @@ public class UserInfoResponse {
     private String username;
 
     /**
+     * 手机号
+     */
+    private String phone;
+
+    /**
      * 性别：男、女、未知
      */
     private String gender;
@@ -62,6 +67,7 @@ public class UserInfoResponse {
         response.setAvatar(user.getAvatar());
         response.setGender(convertGenderToString(user.getGender()));
         response.setBirthday(user.getBirthday());
+        response.setPhone(user.getPhone());
 
         return response;
     }

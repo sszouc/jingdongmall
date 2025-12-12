@@ -127,11 +127,36 @@ public class UserServiceImpl implements UserService {
 
             // 更新性别
             if (StringUtils.hasText(request.getGender())) {
-                // 验证性别格式
-                if (!Pattern.matches("^[男女未知]$", request.getGender())) {
-                    throw new BusinessException("性别格式不正确");
-                }
                 user.setGender(request.getGenderAsInt());
+                hasUpdates = true;
+            }
+
+            // 更新用户名
+            if (StringUtils.hasText(request.getUsername())) {
+                user.setAvatar(request.getAvatar());
+                hasUpdates = true;
+            }
+
+            // 更新手机号
+            if (StringUtils.hasText(request.getPhone())) {
+
+                // 检查手机号是否已被其他用户使用
+                int phoneCount = userMapper.countByPhone(request.getPhone());
+                if (phoneCount > 0) {
+                    throw new BusinessException(ErrorCode.PHONE_EXISTED);
+                }
+                user.setPhone(request.getPhone());
+                hasUpdates = true;
+            }
+
+            // 更新邮箱
+            if (StringUtils.hasText(request.getEmail())) {
+                // 检查邮箱是否已被其他用户使用
+                int emailCount = userMapper.countByEmail(request.getEmail());
+                if (emailCount > 0) {
+                    throw new BusinessException(ErrorCode.EMAIL_EXISTED);
+                }
+                user.setEmail(request.getEmail());
                 hasUpdates = true;
             }
 
@@ -146,7 +171,7 @@ public class UserServiceImpl implements UserService {
             // 保存到数据库
             int result = userMapper.updateUserInfo(user);
             if (result <= 0) {
-                throw new BusinessException("更新用户信息失败，请稍后重试");
+                throw new BusinessException(ErrorCode.INFO_UPDATE_FAIL);
             }
 
             log.info("User info updated: userId={}", userId);
