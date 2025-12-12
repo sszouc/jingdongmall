@@ -145,7 +145,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 构建用户信息
         UserLoginResponse.UserInfo userInfo = new UserLoginResponse.UserInfo();
-        userInfo.setUid(user.getId());
+        userInfo.setId(user.getId());
         userInfo.setNickname(user.getUsername());
         userInfo.setAvatar(user.getAvatar());
         response.setUserInfo(userInfo);
