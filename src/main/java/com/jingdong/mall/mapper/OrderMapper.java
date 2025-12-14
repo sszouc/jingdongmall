@@ -68,4 +68,12 @@ public interface OrderMapper {
      */
     @SelectProvider(type = OrderSqlProvider.class, method = "countItemsByOrderIds")
     List<Map<String, Object>> countItemsByOrderIds(@Param("orderIds") List<Long> orderIds);
+
+    /**
+     * 根据ID删除订单
+     * @param id 订单ID
+     * @return 删除的行数
+     */
+    @Delete("DELETE FROM `order` WHERE id = #{id}")
+    int deleteById(@Param("id") Long id);
 }

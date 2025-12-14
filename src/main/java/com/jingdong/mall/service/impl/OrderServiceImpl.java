@@ -8,6 +8,7 @@ import com.jingdong.mall.mapper.*;
 import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
 import com.jingdong.mall.model.dto.response.OrderCreateResponse;
+import com.jingdong.mall.model.dto.response.OrderDeleteResponse;
 import com.jingdong.mall.model.dto.response.OrderDetailResponse;
 import com.jingdong.mall.model.dto.request.OrderListRequest;
 import com.jingdong.mall.model.dto.response.OrderListResponse;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -312,6 +314,51 @@ public class OrderServiceImpl implements OrderService {
             log.error("创建订单系统异常", e);
             throw new BusinessException(ErrorCode.ORDER_CREATE_FAILED);
         }
+    }
+
+    @Override
+    @Transactional
+    public OrderDeleteResponse deleteHistoricalOrder(Long userId, String orderSn) {
+        log.info("用户 {} 请求删除订单: {}", userId, orderSn);
+
+        // 1. 查询订单是否存在且属于该用户
+        Order order = orderMapper.selectByOrderSnAndUserId(orderSn, userId);
+        if (order == null) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_EXIST);
+        }
+
+        // 2. 检查订单状态是否允许删除
+        // 允许删除的状态：3-已完成、4-已取消、6-退款成功、7-退款失败
+        Integer status = order.getStatus();
+        if (!isDeletableStatus(status)) {
+            throw new BusinessException(ErrorCode.ORDER_CANNOT_DELETE,
+                    "只能删除已完成、已取消、退款成功或退款失败的订单");
+        }
+
+        // 3. 删除订单（级联删除order_item表中的记录）
+        // 由于外键约束是ON DELETE CASCADE，删除订单会自动删除订单项
+        int result = orderMapper.deleteById(order.getId());
+        if (result <= 0) {
+            throw new BusinessException(ErrorCode.ORDER_DELETE_FAILED);
+        }
+
+        log.info("用户 {} 成功删除订单: {}", userId, orderSn);
+
+        // 4. 返回删除响应
+        OrderDeleteResponse response = new OrderDeleteResponse();
+        response.setOrderSn(orderSn);
+        response.setDeletedTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        return response;
+    }
+
+    /**
+     * 检查订单状态是否允许删除
+     * @param status 订单状态
+     * @return true表示允许删除
+     */
+    private boolean isDeletableStatus(Integer status) {
+        return status != null && (status == 3 || status == 4 || status == 6 || status == 7);
     }
 
     @Override

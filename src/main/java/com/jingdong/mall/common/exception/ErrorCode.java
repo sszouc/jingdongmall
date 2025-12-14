@@ -61,6 +61,8 @@ public enum ErrorCode {
     ORDER_PAY_EXPIRED(3006, "订单支付已过期"),
     ORDER_CANCEL_FAILED(3007, "取消订单失败"),
     ORDER_ACCESS_DENIED(3008, "无权访问该订单"),
+    ORDER_CANNOT_DELETE(3009, "订单不允许删除"),
+    ORDER_DELETE_FAILED(3010, "订单删除失败"),
 
 
     // 新增地址相关错误码（地址管理：4000-4999）
