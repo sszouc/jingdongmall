@@ -57,7 +57,6 @@ public class OrderController {
             @Parameter(description = "结束日期", required = false, example = "2024-12-31")
             @RequestParam(required = false) LocalDate endDate) {
 
-        try {
             // 提取并验证Token
             String token = extractTokenFromHeader(authHeader);
             String userIdStr = jwtUtil.getUserIdFromToken(token);
@@ -89,13 +88,6 @@ public class OrderController {
             OrderListResponse response = orderService.getOrderList(userId, request);
 
             return Result.success("获取订单列表成功", response);
-        } catch (BusinessException e) {
-            log.warn("获取订单列表业务异常: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("获取订单列表系统异常", e);
-            throw new BusinessException("获取订单列表失败，请稍后重试");
-        }
     }
 
     //批量创建订单接口
@@ -110,7 +102,6 @@ public class OrderController {
             @RequestHeader("Authorization") String authHeader,
             @Valid @RequestBody OrderCreateFromCartRequest request) {
 
-        try {
             // 提取并验证Token
             String token = extractTokenFromHeader(authHeader);
             String userIdStr = jwtUtil.getUserIdFromToken(token);
@@ -122,13 +113,6 @@ public class OrderController {
             OrderCreateResponse response = orderService.createOrderFromCart(userId, request);
 
             return Result.success("创建成功", response);
-        } catch (BusinessException e) {
-            log.warn("创建订单业务异常: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("创建订单系统异常", e);
-            throw new BusinessException("创建订单失败，请稍后重试");
-        }
     }
 
     /**
@@ -145,7 +129,6 @@ public class OrderController {
             @RequestHeader("Authorization") String authHeader,
             @Valid @RequestBody OrderCreateRequest request) {
 
-        try {
             // 提取并验证Token
             String token = extractTokenFromHeader(authHeader);
             String userIdStr = jwtUtil.getUserIdFromToken(token);
@@ -158,13 +141,6 @@ public class OrderController {
             OrderCreateResponse response = orderService.createOrder(userId, request);
 
             return Result.success("订单创建成功", response);
-        } catch (BusinessException e) {
-            log.warn("创建单个商品订单业务异常: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("创建单个商品订单系统异常", e);
-            throw new BusinessException("创建订单失败，请稍后重试");
-        }
     }
 
     /**
@@ -182,7 +158,6 @@ public class OrderController {
             @Parameter(description = "订单号", required = true, example = "100014")
             @PathVariable String orderSn) {
 
-        try {
             // 提取并验证Token
             String token = extractTokenFromHeader(authHeader);
             String userIdStr = jwtUtil.getUserIdFromToken(token);
@@ -194,13 +169,6 @@ public class OrderController {
             OrderDetailResponse response = orderService.getOrderDetail(userId, orderSn);
 
             return Result.success("获取订单详情成功", response);
-        } catch (BusinessException e) {
-            log.warn("获取订单详情业务异常: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("获取订单详情系统异常", e);
-            throw new BusinessException("获取订单详情失败，请稍后重试");
-        }
     }
 
     /**

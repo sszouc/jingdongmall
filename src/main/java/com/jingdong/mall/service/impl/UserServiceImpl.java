@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
     public void updateUserInfo(long userId, UserUpdateRequest request) {
         try {
             // 验证请求参数
-            if (request == null || !request.isAnyFieldPresent()) {
+            if (request == null) {
                 throw new BusinessException("请提供要更新的信息");
             }
 
@@ -131,7 +131,7 @@ public class UserServiceImpl implements UserService {
 
             // 更新用户名
             if (StringUtils.hasText(request.getUsername())) {
-                user.setAvatar(request.getAvatar());
+                user.setUsername(request.getUsername());
                 hasUpdates = true;
             }
 

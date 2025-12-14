@@ -3,7 +3,7 @@
 CREATE TABLE user
 (
     id           INT         NOT NULL AUTO_INCREMENT COMMENT '用户主键ID',
-    username     VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
+    username     VARCHAR(50) NOT NULL COMMENT '用户名',
     password     CHAR(64)    NOT NULL COMMENT '密码（SHA256加密）',
     email        VARCHAR(100) UNIQUE COMMENT '邮箱（找回密码）',
     phone        VARCHAR(20) NOT NULL UNIQUE COMMENT '手机号',

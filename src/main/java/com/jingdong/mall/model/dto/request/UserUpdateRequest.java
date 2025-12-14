@@ -49,12 +49,12 @@ public class UserUpdateRequest {
     @Pattern(regexp = "^(男|女|未知)$", message = "性别只能是男、女或未知")
     private String gender;
 
-    /**
-     * 验证非空：至少更新一个字段
-     */
-    public boolean isAnyFieldPresent() {
-        return avatar != null || birthday != null || gender != null || email != null || phone != null;
-    }
+//    /**
+//     * 验证非空：至少更新一个字段
+//     */
+//    public boolean isAnyFieldPresent() {
+//        return avatar != null || birthday != null || gender != null || email != null || phone != null || ;
+//    }
 
     /**
      * 将字符串性别转换为数据库存储的整数
