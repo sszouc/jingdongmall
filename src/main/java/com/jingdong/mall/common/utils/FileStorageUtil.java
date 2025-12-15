@@ -224,8 +224,8 @@ public class FileStorageUtil {
             throw new  BusinessException(ErrorCode.ADDRESS_DELETE_FAILED);
         }
 
-        // 验证文件大小（5MB以内）
-        long maxSize = 5 * 1024 * 1024; // 5MB
+        // 验证文件大小（100MB以内）
+        long maxSize = 100 * 1024 * 1024; // 5MB
         if (file.getSize() > maxSize) {
             throw new BusinessException(ErrorCode.PHOTO_BIG);
         }
