@@ -7,10 +7,8 @@ import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
 import com.jingdong.mall.model.dto.request.OrderListRequest;
-import com.jingdong.mall.model.dto.response.OrderCreateResponse;
-import com.jingdong.mall.model.dto.response.OrderDeleteResponse;
-import com.jingdong.mall.model.dto.response.OrderDetailResponse;
-import com.jingdong.mall.model.dto.response.OrderListResponse;
+import com.jingdong.mall.model.dto.request.OrderUpdateRequest;
+import com.jingdong.mall.model.dto.response.*;
 import com.jingdong.mall.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -175,6 +173,36 @@ public class OrderController {
             OrderCreateResponse response = orderService.createOrder(userId, request);
 
             return Result.success("订单创建成功", response);
+    }
+
+    /**
+     * 更新订单状态
+     */
+    @Operation(
+            summary = "更新订单状态",
+            description = "用户操作订单（确认收货、取消订单、申请退款、支付订单等）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PatchMapping("/{orderSn}")
+    public Result<OrderUpdateResponse> updateOrderStatus(
+            @Parameter(description = "JWT认证令牌", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "订单号", required = true, example = "100014")
+            @PathVariable String orderSn,
+            @Valid @RequestBody OrderUpdateRequest request) {
+
+        // 提取并验证Token
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        log.info("用户 {} 请求更新订单状态，订单号: {}, 操作类型: {}, 原因: {}",
+                userId, orderSn, request.getAction(), request.getReason());
+
+        // 调用Service更新订单状态
+        OrderUpdateResponse response = orderService.updateOrderStatus(userId, orderSn, request);
+
+        return Result.success("订单状态更新成功", response);
     }
 
     /**

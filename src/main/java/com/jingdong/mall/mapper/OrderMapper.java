@@ -76,4 +76,12 @@ public interface OrderMapper {
      */
     @Delete("DELETE FROM `order` WHERE id = #{id}")
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 更新订单状态
+     * @param order 订单对象
+     * @return 更新影响的行数
+     */
+    @UpdateProvider(type = OrderSqlProvider.class, method = "updateOrderStatus")
+    int updateOrderStatus(Order order);
 }

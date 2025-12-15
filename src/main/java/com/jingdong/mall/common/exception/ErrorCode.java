@@ -63,6 +63,11 @@ public enum ErrorCode {
     ORDER_ACCESS_DENIED(3008, "无权访问该订单"),
     ORDER_CANNOT_DELETE(3009, "订单不允许删除"),
     ORDER_DELETE_FAILED(3010, "订单删除失败"),
+    ORDER_UPDATE_FAILED(3011, "订单更新失败"),
+    ORDER_CANNOT_CONFIRM_RECEIPT(3012, "订单不能确认收货"),
+    ORDER_CANNOT_CANCEL(3013, "订单不能取消"),
+    ORDER_CANNOT_REFUND(3014, "订单不能申请退款"),
+    ORDER_CANNOT_PAY(3015, "订单不能支付"),
 
 
     // 新增地址相关错误码（地址管理：4000-4999）

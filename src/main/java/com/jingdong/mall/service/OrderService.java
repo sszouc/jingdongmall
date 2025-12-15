@@ -2,11 +2,9 @@ package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
-import com.jingdong.mall.model.dto.response.OrderCreateResponse;
-import com.jingdong.mall.model.dto.response.OrderDeleteResponse;
-import com.jingdong.mall.model.dto.response.OrderDetailResponse;
+import com.jingdong.mall.model.dto.request.OrderUpdateRequest;
+import com.jingdong.mall.model.dto.response.*;
 import com.jingdong.mall.model.dto.request.OrderListRequest;
-import com.jingdong.mall.model.dto.response.OrderListResponse;
 
 /**
  * 订单服务接口
@@ -47,4 +45,13 @@ public interface OrderService {
      * @return 删除响应
      */
     OrderDeleteResponse deleteHistoricalOrder(Long userId, String orderSn);
+
+    /**
+     * 更新订单状态
+     * @param userId 用户ID
+     * @param orderSn 订单号
+     * @param request 更新请求参数
+     * @return 更新响应
+     */
+    OrderUpdateResponse updateOrderStatus(Long userId, String orderSn, OrderUpdateRequest request);
 }
