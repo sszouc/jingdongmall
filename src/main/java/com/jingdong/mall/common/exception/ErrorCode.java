@@ -83,7 +83,15 @@ public enum ErrorCode {
 
     // 购物车相关 (5000-5999)
     CART_ITEM_NOT_EXIST(5001, "购物车项不存在"),
-    CART_ITEM_STOCK_NOT_ENOUGH(5002, "购物车商品库存不足");
+    CART_ITEM_STOCK_NOT_ENOUGH(5002, "购物车商品库存不足"),
+
+    // 图片相关(6000-6999)
+    PHOTO_NOT_EMPTY(6000,"图片不能为空"),
+    PHOTO_BIG(6001,"图片太大"),
+    PHOTO_CONTENT_TYPE(6002,"只能上传图片文件"),
+    PHOTO_CONTENT(6003,"不支持的文件格式，请上传jpg、png、gif、bmp等图片格式"),
+    PHOTO_UPDATE_FAILED(6004,"图片上传失败");
+
 
     private final Integer code;
     private final String message;

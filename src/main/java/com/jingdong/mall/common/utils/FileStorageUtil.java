@@ -2,6 +2,7 @@
 package com.jingdong.mall.common.utils;
 
 import com.jingdong.mall.common.exception.BusinessException;
+import com.jingdong.mall.common.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -130,7 +131,7 @@ public class FileStorageUtil {
 
         } catch (IOException e) {
             log.error("Docker环境保存文件失败: userId={}", userId, e);
-            throw new BusinessException("文件上传失败: " + e.getMessage());
+            throw new BusinessException(ErrorCode.PHOTO_UPDATE_FAILED + e.getMessage());
         }
     }
 
@@ -220,19 +221,19 @@ public class FileStorageUtil {
      */
     private void validateImageFile(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
-            throw new IOException("文件不能为空");
+            throw new  BusinessException(ErrorCode.ADDRESS_DELETE_FAILED);
         }
 
         // 验证文件大小（5MB以内）
         long maxSize = 5 * 1024 * 1024; // 5MB
         if (file.getSize() > maxSize) {
-            throw new IOException("图片大小不能超过5MB");
+            throw new BusinessException(ErrorCode.PHOTO_BIG);
         }
 
         // 验证文件类型
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IOException("只能上传图片文件");
+            throw new BusinessException(ErrorCode.PHOTO_CONTENT_TYPE);
         }
 
         // 验证文件扩展名
@@ -240,7 +241,7 @@ public class FileStorageUtil {
         if (filename != null) {
             String ext = getFileExtension(filename).toLowerCase();
             if (!ext.matches("\\.(jpg|jpeg|png|gif|bmp|webp)$")) {
-                throw new IOException("不支持的文件格式，请上传jpg、png、gif等图片格式");
+                throw new BusinessException(ErrorCode.PHOTO_CONTENT);
             }
         }
     }
