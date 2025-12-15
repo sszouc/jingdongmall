@@ -34,6 +34,8 @@ public enum ErrorCode {
     NEW_OLD_UNEQUAL(1017,"新密码不能与旧密码相同"),
     PASSWORD_CHANGE_FAIL(1018,"密码修改失败"),
     AVATAR_EMPTY(1019,"头像为空"),
+    AVATAR_UPDATE_FAIL(1020,"头像上传失败"),
+    INFO_GET_FAIL(1021,"获取用户信息失败"),
 
 
 
@@ -69,6 +71,7 @@ public enum ErrorCode {
     ORDER_CANNOT_CANCEL(3013, "订单不能取消"),
     ORDER_CANNOT_REFUND(3014, "订单不能申请退款"),
     ORDER_CANNOT_PAY(3015, "订单不能支付"),
+    ORDER_LIST_GET_FAILED(3016,"订单列表获取失败"),
 
 
     // 新增地址相关错误码（地址管理：4000-4999）

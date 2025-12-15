@@ -117,7 +117,6 @@ public class OrderServiceImpl implements OrderService {
 
             log.info("获取订单列表成功: userId={}, total={}, currentSize={}",
                     userId, total, orderPreviews.size());
-
             return response;
 
         } catch (BusinessException e) {
@@ -125,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
             throw e;
         } catch (Exception e) {
             log.error("获取订单列表系统异常: userId={}", userId, e);
-            throw new BusinessException("获取订单列表失败，请稍后重试");
+            throw new BusinessException(ErrorCode.ORDER_LIST_GET_FAILED);
         }
     }
 
@@ -153,8 +152,7 @@ public class OrderServiceImpl implements OrderService {
         dto.setOrderSn(order.getOrderSn());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setPayAmount(order.getPayAmount());
-        dto.setStatus(order.getStatus());
-        dto.setStatusText(getStatusText(order.getStatus()));
+        dto.setStatus(getStatusText(order.getStatus()));
         dto.setCreatedAt(order.getCreatedTime());
         dto.setItemCount(itemCountMap.getOrDefault(order.getId(), 0));
         dto.setPreviewItems(previewItemsMap.getOrDefault(order.getId(), new ArrayList<>()));

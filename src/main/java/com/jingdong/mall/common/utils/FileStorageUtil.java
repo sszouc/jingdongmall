@@ -24,100 +24,157 @@ import java.util.UUID;
 @Component
 public class FileStorageUtil {
 
-    @Value("${file.upload-dir:/root/uploads/avatar}")
+    @Value("${file.upload-dir:/app/uploads/avatar}")
     private String uploadDir;
 
-    @Value("${file.base-url:http://localhost:8080/root/uploads/avatar}")
+    @Value("${file.base-url:http://localhost:8080/uploads/avatar}")
     private String baseUrl;
 
     private Path uploadBasePath;
 
     /**
-     * 初始化，确保使用Linux绝对路径
+     * Docker环境初始化
      */
     @PostConstruct
     public void init() {
         try {
-            // 标准化路径，确保是Linux绝对路径
-            uploadBasePath = Paths.get(uploadDir).toAbsolutePath().normalize();
-            uploadDir = uploadBasePath.toString(); // 更新为标准化后的路径
+            log.info("=== Docker文件存储初始化 ===");
+            log.info("配置路径: {}", uploadDir);
+            log.info("基础URL: {}", baseUrl);
 
-            log.info("Linux服务器上传根目录: {}", uploadDir);
+            // 获取容器ID（用于日志）
+            String containerId = System.getenv("HOSTNAME");
+            if (containerId != null) {
+                log.info("容器ID: {}", containerId);
+            }
 
+            // 使用绝对路径
+            uploadBasePath = Paths.get(uploadDir).toAbsolutePath();
+            log.info("绝对路径: {}", uploadBasePath);
+
+            // 创建目录（Docker volume会自动挂载，但目录可能需要创建）
             if (!Files.exists(uploadBasePath)) {
                 Files.createDirectories(uploadBasePath);
-                log.info("创建上传目录: {}", uploadDir);
+                log.info("创建Docker容器内目录: {}", uploadBasePath);
             }
 
-            // 检查目录权限
-            if (!Files.isWritable(uploadBasePath)) {
-                log.error("上传目录没有写权限: {}", uploadDir);
-                throw new IOException("上传目录没有写权限");
+            // 测试写入权限
+            testWritePermission();
+
+            log.info("Docker文件存储初始化完成");
+
+        } catch (Exception e) {
+            log.error("Docker文件存储初始化失败", e);
+            // Docker环境下，使用备用路径
+            try {
+                uploadBasePath = Paths.get("/tmp/uploads/avatar");
+                Files.createDirectories(uploadBasePath);
+                log.warn("使用备用路径: {}", uploadBasePath);
+            } catch (Exception ex) {
+                throw new RuntimeException("无法初始化文件存储", ex);
             }
-
-            log.info("文件上传目录初始化完成，路径: {}", uploadDir);
-
-        } catch (IOException e) {
-            log.error("初始化上传目录失败: {}", uploadDir, e);
-            throw new RuntimeException("文件存储初始化失败", e);
         }
     }
 
     /**
-     * 保存用户头像文件
-     *
-     * @param file   上传的文件
-     * @param userId 用户ID
-     * @return 文件访问URL
+     * 测试写入权限
+     */
+    private void testWritePermission() throws IOException {
+        Path testFile = uploadBasePath.resolve("test_write.tmp");
+        try {
+            Files.writeString(testFile, "Docker write test - " + System.currentTimeMillis());
+            Files.delete(testFile);
+            log.info("写入权限测试通过");
+        } catch (Exception e) {
+            log.error("写入权限测试失败: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 保存用户头像（Docker优化版）
      */
     public String storeUserAvatar(MultipartFile file, Long userId) {
         try {
-            log.info("开始保存头像文件，用户ID: {}", userId);
+            log.info("Docker环境保存头像，用户ID: {}", userId);
 
             // 1. 验证文件
             validateImageFile(file);
 
-            // 2. 生成唯一文件名
-            String originalFilename = file.getOriginalFilename();
-            log.info("原始文件名: {}", originalFilename);
-
-            String fileExtension = getFileExtension(originalFilename);
+            // 2. 生成文件名
+            String fileExtension = getFileExtension(file.getOriginalFilename());
             String uniqueFileName = UUID.randomUUID() + fileExtension;
-            log.info("新文件名: {}", uniqueFileName);
-
-            // 3. 创建用户专属目录（可选）
-            // 可以直接保存在 /uploads/avatar 下，也可以按用户分目录
             String userDir = "user_" + userId;
+
+            // 3. 确保目录存在
             Path targetDir = uploadBasePath.resolve(userDir);
-
-            log.info("目标目录: {}", targetDir.toString());
-
-            // 4. 创建目录（如果不存在）
             if (!Files.exists(targetDir)) {
                 Files.createDirectories(targetDir);
                 log.info("创建用户目录: {}", targetDir);
             }
 
-            // 5. 保存文件到Linux服务器
+            // 4. 保存文件到Docker volume
             Path targetLocation = targetDir.resolve(uniqueFileName);
-            log.info("完整保存路径: {}", targetLocation.toString());
-
-            // 使用transferTo的Path版本（更安全）
             file.transferTo(targetLocation);
 
-            log.info("头像文件保存成功: userId={}, size={} bytes, path={}",
-                    userId, file.getSize(), targetLocation);
+            log.info("文件保存到Docker volume: {}", targetLocation);
+            log.info("文件大小: {} bytes", Files.size(targetLocation));
 
-            // 6. 生成访问URL
-            String accessUrl = String.format("%s/%s/%s", baseUrl, userDir, uniqueFileName);
-            log.info("文件访问URL: {}", accessUrl);
+            // 5. 生成访问URL
+            String cleanBaseUrl = baseUrl.endsWith("/") ?
+                    baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+            String accessUrl = String.format("%s/%s/%s", cleanBaseUrl, userDir, uniqueFileName);
 
+            log.info("生成访问URL: {}", accessUrl);
             return accessUrl;
 
         } catch (IOException e) {
-            log.error("保存头像文件失败: userId={}, error={}", userId, e.getMessage(), e);
+            log.error("Docker环境保存文件失败: userId={}", userId, e);
             throw new BusinessException("文件上传失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * Docker环境专用：检查文件是否存在
+     */
+    public boolean dockerFileExists(String fileUrl) {
+        try {
+            String relativePath = extractRelativePathFromUrl(fileUrl);
+            if (relativePath == null) {
+                return false;
+            }
+
+            Path filePath = uploadBasePath.resolve(relativePath);
+            boolean exists = Files.exists(filePath);
+
+            if (exists) {
+                log.debug("Docker volume中文件存在: {}", filePath);
+            }
+
+            return exists;
+        } catch (Exception e) {
+            log.error("检查文件存在失败", e);
+            return false;
+        }
+    }
+
+    /**
+     * 提取相对路径（适配Docker URL）
+     */
+    private String extractRelativePathFromUrl(String url) {
+        if (url == null) {
+            return null;
+        }
+
+        String cleanBaseUrl = baseUrl.endsWith("/") ?
+                baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+
+        if (!url.startsWith(cleanBaseUrl)) {
+            log.warn("URL不匹配baseUrl: url={}, baseUrl={}", url, cleanBaseUrl);
+            return null;
+        }
+
+        return url.substring(cleanBaseUrl.length() + 1); // +1 跳过斜杠
     }
 
     /**
@@ -198,37 +255,6 @@ public class FileStorageUtil {
         return filename.substring(filename.lastIndexOf("."));
     }
 
-    /**
-     * 从URL中提取相对路径
-     */
-    private String extractRelativePathFromUrl(String url) {
-        if (url == null) {
-            return null;
-        }
-
-        log.debug("开始提取相对路径, url={}, baseUrl={}", url, baseUrl);
-
-        // 清理baseUrl（移除末尾斜杠）
-        String cleanBaseUrl = baseUrl.endsWith("/") ?
-                baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-
-        log.debug("清理后的baseUrl: {}", cleanBaseUrl);
-
-        // 检查URL是否以baseUrl开头
-        if (!url.startsWith(cleanBaseUrl)) {
-            log.warn("URL不匹配baseUrl: url={}, baseUrl={}", url, cleanBaseUrl);
-            return null;
-        }
-
-        // 提取相对路径（移除baseUrl部分和开头的斜杠）
-        String relativePath = url.substring(cleanBaseUrl.length());
-        if (relativePath.startsWith("/")) {
-            relativePath = relativePath.substring(1);
-        }
-
-        log.debug("提取到的相对路径: {}", relativePath);
-        return relativePath;
-    }
 
     /**
      * 生成头像URL（用于测试或手动生成URL）

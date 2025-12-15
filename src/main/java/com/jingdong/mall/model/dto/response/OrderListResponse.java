@@ -56,14 +56,9 @@ public class OrderListResponse {
         private BigDecimal payAmount;
 
         /**
-         * 订单状态编码
+         * 订单状态
          */
-        private Integer status;
-
-        /**
-         * 订单状态文本
-         */
-        private String statusText;
+        private String status;
 
         /**
          * 创建时间

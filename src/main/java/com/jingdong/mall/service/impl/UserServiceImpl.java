@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
             throw e;
         } catch (Exception e) {
             log.error("Failed to get user info", e);
-            throw new BusinessException("获取用户信息失败");
+            throw new BusinessException(ErrorCode.INFO_GET_FAIL);
         }
     }
 
@@ -182,7 +182,7 @@ public class UserServiceImpl implements UserService {
             throw e;
         } catch (Exception e) {
             log.error("Failed to update user info", e);
-            throw new BusinessException("更新用户信息失败");
+            throw new BusinessException(ErrorCode.INFO_UPDATE_FAIL);
         }
     }
 
@@ -243,7 +243,7 @@ public class UserServiceImpl implements UserService {
             throw e;
         } catch (Exception e) {
             log.error("修改密码系统异常", e);
-            throw new BusinessException("密码修改失败");
+            throw new BusinessException(ErrorCode.PASSWORD_ERROR);
         }
     }
 
@@ -276,7 +276,7 @@ public class UserServiceImpl implements UserService {
 
             int result = userMapper.updateAvatar(userId, avatarUrl, LocalDateTime.now());
             if (result <= 0) {
-                throw new BusinessException("头像更新失败");
+                throw new BusinessException(ErrorCode.AVATAR_UPDATE_FAIL);
             }
 
             // 6. 删除旧头像文件（如果有的话）
@@ -300,7 +300,7 @@ public class UserServiceImpl implements UserService {
             throw e;
         } catch (Exception e) {
             log.error("头像上传系统异常: userId={}", userId, e);
-            throw new BusinessException("头像上传失败");
+            throw new BusinessException(ErrorCode.AVATAR_UPDATE_FAIL);
         }
     }
 
