@@ -47,6 +47,12 @@ public interface UserMapper {
             "WHERE id = #{id}")
     int updateUserInfo(User user);
 
+    // 新增：更新头像专用方法
+    @Update("UPDATE user SET avatar = #{avatar}, updated_time = #{updatedTime} WHERE id = #{userId}")
+    int updateAvatar(@Param("userId") Long userId,
+                     @Param("avatar") String avatar,
+                     @Param("updatedTime") LocalDateTime updatedTime);
+
     @Delete("DELETE FROM user WHERE id = #{id}")
     int deleteById(Long id);
 

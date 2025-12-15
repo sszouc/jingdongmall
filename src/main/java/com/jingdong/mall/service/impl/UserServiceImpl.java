@@ -9,12 +9,14 @@ import com.jingdong.mall.model.dto.response.UserInfoResponse;
 import com.jingdong.mall.model.entity.TokenBlacklist;
 import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.service.UserService;
+import com.jingdong.mall.common.utils.FileStorageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -34,6 +36,10 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private FileStorageUtil fileStorageUtil; // 替换原来的FileStorageService
+
 
     @Override
     @Transactional
@@ -110,11 +116,11 @@ public class UserServiceImpl implements UserService {
             // 更新用户信息
             boolean hasUpdates = false;
 
-            // 更新头像
-            if (StringUtils.hasText(request.getAvatar())) {
-                user.setAvatar(request.getAvatar());
-                hasUpdates = true;
-            }
+//            // 更新头像
+//            if (StringUtils.hasText(request.getAvatar())) {
+//                user.setAvatar(request.getAvatar());
+//                hasUpdates = true;
+//            }
 
             // 更新生日
             if (request.getBirthday() != null) {
@@ -238,6 +244,63 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             log.error("修改密码系统异常", e);
             throw new BusinessException("密码修改失败");
+        }
+    }
+
+    @Override
+    @Transactional
+    public String uploadAvatar(long userId, MultipartFile avatarFile) {
+        try {
+            log.info("开始上传头像: userId={}, fileSize={}", userId, avatarFile.getSize());
+
+            // 1. 查询用户信息
+            User user = userMapper.selectById(userId);
+            if (user == null) {
+                throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+            }
+
+            // 2. 检查用户状态
+            if (user.getStatus() != User.Status.ENABLED) {
+                throw new BusinessException(ErrorCode.USER_DISABLED);
+            }
+
+            // 3. 保存头像文件
+            String avatarUrl = fileStorageUtil.storeUserAvatar(avatarFile, userId);
+
+            // 4. 保存旧头像URL用于后续删除
+            String oldAvatar = user.getAvatar();
+
+            // 5. 更新用户头像URL
+            user.setAvatar(avatarUrl);
+            user.setUpdatedTime(LocalDateTime.now());
+
+            int result = userMapper.updateAvatar(userId, avatarUrl, LocalDateTime.now());
+            if (result <= 0) {
+                throw new BusinessException("头像更新失败");
+            }
+
+            // 6. 删除旧头像文件（如果有的话）
+            if (StringUtils.hasText(oldAvatar)) {
+                try {
+                    boolean deleted = fileStorageUtil.deleteFile(oldAvatar);
+                    if (deleted) {
+                        log.info("旧头像删除成功: userId={}, oldAvatar={}", userId, oldAvatar);
+                    }
+                } catch (Exception e) {
+                    // 删除失败不影响主流程，只记录日志
+                    log.warn("删除旧头像失败，可手动清理: userId={}, oldAvatar={}", userId, oldAvatar, e);
+                }
+            }
+
+            log.info("头像上传成功: userId={}, avatarUrl={}", userId, avatarUrl);
+            return avatarUrl;
+
+        } catch (BusinessException e) {
+            log.warn("头像上传业务异常: userId={}", userId, e);
+            throw e;
+        } catch (Exception e) {
+            log.error("头像上传系统异常: userId={}", userId, e);
+            throw new BusinessException("头像上传失败");
         }
     }
 

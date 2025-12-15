@@ -2,6 +2,7 @@ package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.UserUpdateRequest;
 import com.jingdong.mall.model.dto.response.UserInfoResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户服务接口
@@ -36,4 +37,14 @@ public interface UserService {
      * @param newPassword 新密码
      */
     void changePassword(long userId, String oldPassword, String newPassword);
+
+    /**
+     * 上传用户头像
+     * @param userId 用户ID
+     * @param avatarFile 头像文件
+     * @return 头像URL
+     */
+    String uploadAvatar(long userId, MultipartFile avatarFile);
+
+
 }

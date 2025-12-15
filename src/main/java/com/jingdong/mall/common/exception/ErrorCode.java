@@ -33,6 +33,7 @@ public enum ErrorCode {
     INFO_UPDATE_FAIL(1016,"用户信息更新失败"),
     NEW_OLD_UNEQUAL(1017,"新密码不能与旧密码相同"),
     PASSWORD_CHANGE_FAIL(1018,"密码修改失败"),
+    AVATAR_EMPTY(1019,"头像为空"),
 
 
 
