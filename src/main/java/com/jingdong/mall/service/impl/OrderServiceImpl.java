@@ -7,7 +7,10 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.*;
 import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
+import com.jingdong.mall.model.dto.request.OrderUpdateRequest;
+import com.jingdong.mall.model.dto.response.OrderUpdateResponse;
 import com.jingdong.mall.model.dto.response.OrderCreateResponse;
+import com.jingdong.mall.model.dto.response.OrderDeleteResponse;
 import com.jingdong.mall.model.dto.response.OrderDetailResponse;
 import com.jingdong.mall.model.dto.request.OrderListRequest;
 import com.jingdong.mall.model.dto.response.OrderListResponse;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -312,6 +316,167 @@ public class OrderServiceImpl implements OrderService {
             log.error("创建订单系统异常", e);
             throw new BusinessException(ErrorCode.ORDER_CREATE_FAILED);
         }
+    }
+
+    @Override
+    @Transactional
+    public OrderUpdateResponse updateOrderStatus(Long userId, String orderSn, OrderUpdateRequest request) {
+        log.info("更新订单状态: userId={}, orderSn={}, action={}, reason={}",
+                userId, orderSn, request.getAction(), request.getReason());
+
+        // 1. 查询订单是否存在且属于该用户
+        Order order = orderMapper.selectByOrderSnAndUserId(orderSn, userId);
+        if (order == null) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_EXIST);
+        }
+
+        // 2. 根据操作类型执行不同的状态更新逻辑
+        Integer currentStatus = order.getStatus();
+        Integer action = request.getAction();
+
+        switch (action) {
+            case 0: // 确认收货
+                confirmReceipt(order, currentStatus);
+                break;
+            case 1: // 取消订单
+                cancelOrder(order, currentStatus, request.getReason());
+                break;
+            case 2: // 申请退款
+                applyRefund(order, currentStatus, request.getReason());
+                break;
+            case 3: // 支付订单
+                payOrder(order, currentStatus);
+                break;
+            default:
+                throw new BusinessException(ErrorCode.ORDER_STATUS_ERROR, "不支持的操作类型");
+        }
+
+        // 3. 更新订单
+        int result = updateOrderStatusInDb(order);
+        if (result <= 0) {
+            throw new BusinessException(ErrorCode.ORDER_STATUS_ERROR, "订单状态更新失败");
+        }
+
+        // 4. 构建响应
+        OrderUpdateResponse response = new OrderUpdateResponse();
+        response.setOrderSn(orderSn);
+        response.setStatus(order.getStatus());
+        response.setStatusText(getStatusText(order.getStatus()));
+        response.setUpdatedAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        log.info("订单状态更新成功: orderSn={}, 新状态={}", orderSn, order.getStatus());
+        return response;
+    }
+
+    /**
+     * 确认收货
+     */
+    private void confirmReceipt(Order order, Integer currentStatus) {
+        // 确认收货只能从待收货(2)状态进行
+        if (currentStatus != 2) {
+            throw new BusinessException(ErrorCode.ORDER_STATUS_ERROR,
+                    "只有待收货状态的订单才能确认收货");
+        }
+
+        order.setStatus(3); // 3: 已完成
+        order.setConfirmTime(LocalDateTime.now());
+    }
+
+    /**
+     * 取消订单
+     */
+    private void cancelOrder(Order order, Integer currentStatus, String reason) {
+        // 取消订单只能从待付款(0)状态进行
+        if (currentStatus != 0) {
+            throw new BusinessException(ErrorCode.ORDER_STATUS_ERROR,
+                    "只有待付款状态的订单才能取消");
+        }
+
+        order.setStatus(4); // 4: 已取消
+        order.setCancelTime(LocalDateTime.now());
+        order.setCancelReason(reason);
+    }
+
+    /**
+     * 申请退款
+     */
+    private void applyRefund(Order order, Integer currentStatus, String reason) {
+        // 申请退款只能从待发货(1)状态进行
+        if (currentStatus != 1) {
+            throw new BusinessException(ErrorCode.ORDER_STATUS_ERROR,
+                    "只有待发货状态的订单才能申请退款");
+        }
+
+        order.setStatus(5); // 5: 退款中
+        order.setRefundTime(LocalDateTime.now());
+        order.setRefundReason(reason);
+    }
+
+    /**
+     * 支付订单
+     */
+    private void payOrder(Order order, Integer currentStatus) {
+        // 支付订单只能从待付款(0)状态进行
+        if (currentStatus != 0) {
+            throw new BusinessException(ErrorCode.ORDER_STATUS_ERROR,
+                    "只有待付款状态的订单才能支付");
+        }
+
+        order.setStatus(1); // 1: 待发货
+        order.setPayTime(LocalDateTime.now());
+    }
+
+    /**
+     * 更新订单状态到数据库
+     */
+    private int updateOrderStatusInDb(Order order) {
+        // 使用动态SQL更新订单状态及相关的字段
+        return orderMapper.updateOrderStatus(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderDeleteResponse deleteHistoricalOrder(Long userId, String orderSn) {
+        log.info("用户 {} 请求删除订单: {}", userId, orderSn);
+
+        // 1. 查询订单是否存在且属于该用户
+        Order order = orderMapper.selectByOrderSnAndUserId(orderSn, userId);
+        if (order == null) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_EXIST);
+        }
+
+        // 2. 检查订单状态是否允许删除
+        // 允许删除的状态：3-已完成、4-已取消、6-退款成功、7-退款失败
+        Integer status = order.getStatus();
+        if (!isDeletableStatus(status)) {
+            throw new BusinessException(ErrorCode.ORDER_CANNOT_DELETE,
+                    "只能删除已完成、已取消、退款成功或退款失败的订单");
+        }
+
+        // 3. 删除订单（级联删除order_item表中的记录）
+        // 由于外键约束是ON DELETE CASCADE，删除订单会自动删除订单项
+        int result = orderMapper.deleteById(order.getId());
+        if (result <= 0) {
+            throw new BusinessException(ErrorCode.ORDER_DELETE_FAILED);
+        }
+
+        log.info("用户 {} 成功删除订单: {}", userId, orderSn);
+
+        // 4. 返回删除响应
+        OrderDeleteResponse response = new OrderDeleteResponse();
+        response.setOrderSn(orderSn);
+        response.setDeletedTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+        return response;
+    }
+
+    /**
+     * 检查订单状态是否允许删除
+     * @param status 订单状态
+     * @return true表示允许删除
+     */
+    private boolean isDeletableStatus(Integer status) {
+        return status != null && (status == 3 || status == 4 || status == 6 || status == 7);
     }
 
     @Override

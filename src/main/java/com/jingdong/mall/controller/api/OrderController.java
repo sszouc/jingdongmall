@@ -7,9 +7,8 @@ import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.OrderCreateRequest;
 import com.jingdong.mall.model.dto.request.OrderCreateFromCartRequest;
 import com.jingdong.mall.model.dto.request.OrderListRequest;
-import com.jingdong.mall.model.dto.response.OrderCreateResponse;
-import com.jingdong.mall.model.dto.response.OrderDetailResponse;
-import com.jingdong.mall.model.dto.response.OrderListResponse;
+import com.jingdong.mall.model.dto.request.OrderUpdateRequest;
+import com.jingdong.mall.model.dto.response.*;
 import com.jingdong.mall.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -90,6 +89,39 @@ public class OrderController {
             return Result.success("获取订单列表成功", response);
     }
 
+    /**
+     * 删除历史订单
+     */
+    @Operation(
+            summary = "删除历史订单",
+            description = "删除历史订单，只能删除状态为已完成、已取消、退款成功、退款失败的订单",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @DeleteMapping("/delete/{orderSn}")
+    public Result<OrderDeleteResponse> deleteHistoricalOrder(
+            @Parameter(description = "JWT认证令牌", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "订单号", required = true, example = "100014")
+            @PathVariable String orderSn) {
+
+        // 提取并验证Token
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        log.info("用户 {} 请求删除订单，订单号: {}", userId, orderSn);
+
+        // 参数校验
+        if (orderSn == null || orderSn.trim().isEmpty()) {
+            throw new BusinessException("订单号不能为空");
+        }
+
+        // 调用Service删除订单
+        OrderDeleteResponse response = orderService.deleteHistoricalOrder(userId, orderSn);
+
+        return Result.success("订单删除成功", response);
+    }
+
     //批量创建订单接口
     @Operation(
             summary = "批量创建订单",
@@ -141,6 +173,36 @@ public class OrderController {
             OrderCreateResponse response = orderService.createOrder(userId, request);
 
             return Result.success("订单创建成功", response);
+    }
+
+    /**
+     * 更新订单状态
+     */
+    @Operation(
+            summary = "更新订单状态",
+            description = "用户操作订单（确认收货、取消订单、申请退款、支付订单等）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PatchMapping("/{orderSn}")
+    public Result<OrderUpdateResponse> updateOrderStatus(
+            @Parameter(description = "JWT认证令牌", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "订单号", required = true, example = "100014")
+            @PathVariable String orderSn,
+            @Valid @RequestBody OrderUpdateRequest request) {
+
+        // 提取并验证Token
+        String token = extractTokenFromHeader(authHeader);
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        log.info("用户 {} 请求更新订单状态，订单号: {}, 操作类型: {}, 原因: {}",
+                userId, orderSn, request.getAction(), request.getReason());
+
+        // 调用Service更新订单状态
+        OrderUpdateResponse response = orderService.updateOrderStatus(userId, orderSn, request);
+
+        return Result.success("订单状态更新成功", response);
     }
 
     /**
