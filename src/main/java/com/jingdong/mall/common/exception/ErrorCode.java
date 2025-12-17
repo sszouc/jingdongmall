@@ -33,6 +33,7 @@ public enum ErrorCode {
     AVATAR_EMPTY(1015,"头像为空"),
     AVATAR_UPDATE_FAIL(1016,"头像上传失败"),
     INFO_GET_FAIL(1017,"获取用户信息失败"),
+    LOGOUT_FAILED(1018,"退出登录失败"),
 
 
 
@@ -90,10 +91,12 @@ public enum ErrorCode {
     PHOTO_UPDATE_FAILED(6004,"图片上传失败"),
 
     // Token相关(7000-7999)
-    TOKEN_EXPIRED(1012,"Token已过期，请尝试重新登录"),
-    TOKEN_INVALID_FORMAT(1013,"Token格式错误，请尝试重新登录"),
-    TOKEN_INVALID_SIGNATURE(1014,"Token签名无效，请尝试重新登录"),
-    TOKEN_ERROR(1015,"Token验证失败，请尝试重新登录");
+    TOKEN_EXPIRED(7000,"Token已过期，请尝试重新登录"),
+    TOKEN_INVALID_FORMAT(7001,"Token格式错误，请尝试重新登录"),
+    TOKEN_INVALID_SIGNATURE(7002,"Token签名无效，请尝试重新登录"),
+    TOKEN_ERROR(7003,"Token验证失败，请尝试重新登录"),
+    TOKEN_ADD_BLACKLIST_FAILED(7004,"Token加入黑名单失败")
+    ;
 
 
     private final Integer code;

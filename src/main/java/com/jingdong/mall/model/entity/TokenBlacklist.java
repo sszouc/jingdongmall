@@ -38,7 +38,7 @@ public class TokenBlacklist {
     private LocalDateTime expiresAt;
 
     /**
-     * 加入黑名单原因：LOGOUT登出、PWD_CHANGE密码修改、SECURITY安全原因
+     * 加入黑名单原因：LOGOUT登出、PWD_CHANGE密码修改、BAN被封禁
      */
     private String reason;
 
@@ -52,6 +52,6 @@ public class TokenBlacklist {
     public static class Reason {
         public static final String LOGOUT = "LOGOUT";
         public static final String PWD_CHANGE = "PWD_CHANGE";
-        public static final String SECURITY = "SECURITY";
+        public static final String BAN = "BAN";
     }
 }

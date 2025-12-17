@@ -2,14 +2,13 @@ package com.jingdong.mall.service.impl;
 
 import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
-import com.jingdong.mall.mapper.TokenBlacklistMapper;
+import com.jingdong.mall.common.utils.FileStorageUtil;
+import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.mapper.UserMapper;
 import com.jingdong.mall.model.dto.request.UserUpdateRequest;
 import com.jingdong.mall.model.dto.response.UserInfoResponse;
-import com.jingdong.mall.model.entity.TokenBlacklist;
 import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.service.UserService;
-import com.jingdong.mall.common.utils.FileStorageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,18 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    private TokenBlacklistMapper tokenBlacklistMapper;
+    private JwtUtil jwtUtil;
 
     @Autowired
     private UserMapper userMapper;
@@ -43,34 +39,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void signout(String token, long userId) {
+    public void signout(String token) {
         try {
-            // 计算token的SHA256哈希值
-            String tokenHash = calculateTokenHash(token);
-
-            // 检查token是否已经在黑名单中
-            if (tokenBlacklistMapper.existsByTokenHash(tokenHash) > 0) {
-                log.warn("Token already in blacklist: hash={}", tokenHash);
-                throw new BusinessException(ErrorCode.TOKEN_EXPIRED);
-            }
-
-            // 创建黑名单记录
-            TokenBlacklist blacklistRecord = new TokenBlacklist();
-            blacklistRecord.setUserId(Math.toIntExact(userId));
-            blacklistRecord.setTokenHash(tokenHash);
-            blacklistRecord.setExpiresAt(LocalDateTime.now().plusDays(30));
-            blacklistRecord.setReason(TokenBlacklist.Reason.LOGOUT);
-            blacklistRecord.setCreatedTime(LocalDateTime.now());
-
-            // 保存到数据库
-            int result = tokenBlacklistMapper.insert(blacklistRecord);
-            if (result > 0) {
-                log.info("Token added to blacklist: userId={}, reason=LOGOUT", userId);
-            }
-
+            jwtUtil.blackListToken(token, "LOGOUT");
         } catch (Exception e) {
-            log.error("Failed to add token to blacklist", e);
-            throw new BusinessException("退出登录失败，请重试");
+            throw new BusinessException(ErrorCode.TOKEN_ADD_BLACKLIST_FAILED);
         }
     }
 
@@ -164,7 +137,7 @@ public class UserServiceImpl implements UserService {
 
             // 如果没有实际更新，直接返回
             if (!hasUpdates) {
-                return ;
+                return;
             }
 
             // 更新时间戳
@@ -302,23 +275,5 @@ public class UserServiceImpl implements UserService {
             log.error("头像上传系统异常: userId={}", userId, e);
             throw new BusinessException(ErrorCode.AVATAR_UPDATE_FAIL);
         }
-    }
-
-    /**
-     * 计算token的SHA256哈希值
-     */
-    private String calculateTokenHash(String token) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hashBytes = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-
-        // 将字节数组转换为十六进制字符串
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : hashBytes) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) hexString.append('0');
-            hexString.append(hex);
-        }
-
-        return hexString.toString();
     }
 }

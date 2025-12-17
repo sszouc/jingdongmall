@@ -1,5 +1,5 @@
 // src/main/java/com/jingdong/mall/mapper/TokenBlacklistMapper.java
-package com.jingdong.mall.mapper;
+package com.jingdong.mall.common.utils;
 
 import com.jingdong.mall.model.entity.TokenBlacklist;
 import org.apache.ibatis.annotations.*;

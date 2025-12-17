@@ -3,8 +3,8 @@ package com.jingdong.mall.common.utils;
 
 import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
+import com.jingdong.mall.model.entity.TokenBlacklist;
 import com.jingdong.mall.model.entity.User;
-import com.jingdong.mall.service.UserService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
@@ -14,6 +14,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 
 /**
  * JWT工具类
@@ -22,13 +26,17 @@ import javax.crypto.SecretKey;
 @Component
 public class JwtUtil {
 
+
+    @Autowired
+    private TokenBlacklistMapper tokenBlacklistMapper;
+
     // Jwt密钥存储在环境变量中
     @Value("${jwt.secret}")
     private String secret;
 
     /**
      * -- GETTER --
-     *  获取过期时间
+     * 获取过期时间
      */
     @Getter
     @Value("${jwt.expiration}")
@@ -94,5 +102,57 @@ public class JwtUtil {
         Claims claims = parseTokenClaims(token);
         return claims.get("role", String.class);
     }
+
+    /**
+     * 计算token的SHA256哈希值
+     */
+    public String calculateTokenHash(String token) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hashBytes = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+
+        // 将字节数组转换为十六进制字符串
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : hashBytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
+        }
+
+        return hexString.toString();
+    }
+
+    /**
+     * 把token加入黑名单
+     * @param token  token本身
+     * @param reason 加入黑名单的原因，LOGOUT登出、PWD_CHANGE密码修改、BAN被封禁
+     */
+    public void blackListToken(String token, String reason) throws NoSuchAlgorithmException {
+
+        String tokenHash = calculateTokenHash(token);
+
+        // 检查token是否已经在黑名单中
+        if (tokenBlacklistMapper.existsByTokenHash(tokenHash) > 0) {
+            log.warn("Token already in blacklist: hash={}", tokenHash);
+            return ;
+        }
+
+
+        String userId = getUserIdFromToken(token);
+        TokenBlacklist blacklistRecord = new TokenBlacklist();
+        blacklistRecord.setUserId(Long.parseLong(userId));
+        blacklistRecord.setTokenHash(tokenHash);
+        blacklistRecord.setExpiresAt(LocalDateTime.now().plusDays(30));
+
+        blacklistRecord.setReason(reason);
+
+        blacklistRecord.setCreatedTime(LocalDateTime.now());
+        // 保存到数据库
+        int result = tokenBlacklistMapper.insert(blacklistRecord);
+
+        if (result > 0) {
+            log.info("Token added to blacklist: userId={}, reason=LOGOUT", userId);
+        }
+    }
+
 
 }

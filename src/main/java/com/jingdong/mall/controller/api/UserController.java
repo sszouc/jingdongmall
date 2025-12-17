@@ -16,6 +16,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.NoSuchAlgorithmException;
+
 /**
  * 用户个人中心控制器
  */
@@ -35,17 +37,17 @@ public class UserController {
      * 退出登录
      */
     @PostMapping("/signout")
-    public Result<String> signout(HttpServletRequest request) {
+    public Result<String> signout(HttpServletRequest request) throws NoSuchAlgorithmException {
         String token = extractTokenFromRequest(request);
 
         if (token == null || token.isEmpty()) {
-            throw new BusinessException(ErrorCode.TOKEN_ERROR, "缺少认证令牌");
+            throw new BusinessException(ErrorCode.TOKEN_ERROR);
         }
 
         String userIdStr = jwtUtil.getUserIdFromToken(token);
         long userId = Long.parseLong(userIdStr);
 
-        userService.signout(token, userId);
+        userService.signout(token);
 
         log.info("用户退出登录成功: userId={}", userId);
         return Result.success("退出登录成功", null);
@@ -60,7 +62,7 @@ public class UserController {
         String token = extractTokenFromRequest(request);
 
         if (token == null || token.isEmpty()) {
-            throw new BusinessException(ErrorCode.TOKEN_ERROR, "缺少认证令牌");
+            throw new BusinessException(ErrorCode.TOKEN_ERROR);
         }
 
         String userIdStr = jwtUtil.getUserIdFromToken(token);
@@ -150,7 +152,7 @@ public class UserController {
         long userId = Long.parseLong(userIdStr);
 
         // 验证文件是否为空
-        if (file == null || file.isEmpty()) {
+        if (file.isEmpty()) {
             throw new BusinessException(ErrorCode.AVATAR_EMPTY, "请选择要上传的头像文件");
         }
 

@@ -4,6 +4,8 @@ import com.jingdong.mall.model.dto.request.UserUpdateRequest;
 import com.jingdong.mall.model.dto.response.UserInfoResponse;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.NoSuchAlgorithmException;
+
 /**
  * 用户服务接口
  */
@@ -12,9 +14,8 @@ public interface UserService {
     /**
      * 退出登录
      * @param token JWT令牌
-     * @param userId 用户ID
      */
-    void signout(String token, long userId);
+    void signout(String token) throws NoSuchAlgorithmException;
 
     /**
      * 获取用户信息
