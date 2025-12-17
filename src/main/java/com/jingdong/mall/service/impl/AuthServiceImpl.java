@@ -122,14 +122,14 @@ public class AuthServiceImpl implements AuthService {
 
         // TODO:记得这里要加入检查黑名单有没有这个Token的功能，现在先不做
         // 生成JWT token
-        String token = jwtUtil.generateToken(String.valueOf(user.getId()));
+        String token = jwtUtil.generateToken(user);
         response.setToken(token);
 
 
         // 构建用户信息
         UserRegisterResponse.UserInfo userInfo = new UserRegisterResponse.UserInfo();
         userInfo.setId(user.getId());
-        userInfo.setUserName(user.getUsername());
+        userInfo.setUsername(user.getUsername());
         userInfo.setAvatar(user.getAvatar());
         response.setUserInfo(userInfo);
 
@@ -140,13 +140,13 @@ public class AuthServiceImpl implements AuthService {
         UserLoginResponse response = new UserLoginResponse();
         // TODO:记得这里要加入检查黑名单有没有这个Token的功能，现在先不做
         // 生成JWT token
-        String token = jwtUtil.generateToken(String.valueOf(user.getId()));
+        String token = jwtUtil.generateToken(user);
         response.setToken(token);
 
         // 构建用户信息
         UserLoginResponse.UserInfo userInfo = new UserLoginResponse.UserInfo();
         userInfo.setId(user.getId());
-        userInfo.setNickname(user.getUsername());
+        userInfo.setUsername(user.getUsername());
         userInfo.setAvatar(user.getAvatar());
         response.setUserInfo(userInfo);
 

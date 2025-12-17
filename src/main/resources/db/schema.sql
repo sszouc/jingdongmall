@@ -11,7 +11,7 @@ CREATE TABLE user
     gender       TINYINT(1)  NOT NULL DEFAULT 0 COMMENT '性别：0保密，1男，2女',
     birthday     DATE        NOT NULL COMMENT '生日',
     status       TINYINT     NOT NULL CHECK (status IN (1, 0)) COMMENT '状态：1正常，0禁用',
-    role         TINYINT     NOT NULL CHECK (role IN (0, 1)) COMMENT '角色：0普通用户，1管理员',
+    role         TINYINT     NOT NULL CHECK (role IN (0, 1, 2)) COMMENT '角色：0普通用户，1管理员，2超级管理员',
     created_time DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_time DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id)

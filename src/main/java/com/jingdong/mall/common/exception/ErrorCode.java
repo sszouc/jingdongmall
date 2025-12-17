@@ -15,6 +15,7 @@ import lombok.Getter;
 public enum ErrorCode {
 
     // 业务错误码 (1000-1999)
+    NOT_PERMISSION(1000,"您无权使用该接口"),
     USER_NOT_EXIST(1001, "用户不存在"),
     USER_EXISTED(1002, "用户已存在"),
     PHONE_EXISTED(1003, "手机号已注册"),
@@ -26,16 +27,12 @@ public enum ErrorCode {
     PHONE_FORMAT_ERROR(1009,"手机号格式不正确"),
     ACCOUNT_OR_PASSWORD_ERROR(1010, "账号或密码错误"),
     USER_DISABLED(1011, "用户已被禁用"),
-    TOKEN_EXPIRED(1012,"Token已过期"),
-    TOKEN_INVALID_FORMAT(1013,"Token格式错误"),
-    TOKEN_INVALID_SIGNATURE(1014,"Token签名无效"),
-    TOKEN_ERROR(1015,"Token验证失败"),
-    INFO_UPDATE_FAIL(1016,"用户信息更新失败"),
-    NEW_OLD_UNEQUAL(1017,"新密码不能与旧密码相同"),
-    PASSWORD_CHANGE_FAIL(1018,"密码修改失败"),
-    AVATAR_EMPTY(1019,"头像为空"),
-    AVATAR_UPDATE_FAIL(1020,"头像上传失败"),
-    INFO_GET_FAIL(1021,"获取用户信息失败"),
+    INFO_UPDATE_FAIL(1012,"用户信息更新失败"),
+    NEW_OLD_UNEQUAL(1013,"新密码不能与旧密码相同"),
+    PASSWORD_CHANGE_FAIL(1014,"密码修改失败"),
+    AVATAR_EMPTY(1015,"头像为空"),
+    AVATAR_UPDATE_FAIL(1016,"头像上传失败"),
+    INFO_GET_FAIL(1017,"获取用户信息失败"),
 
 
 
@@ -90,7 +87,13 @@ public enum ErrorCode {
     PHOTO_BIG(6001,"图片太大"),
     PHOTO_CONTENT_TYPE(6002,"只能上传图片文件"),
     PHOTO_CONTENT(6003,"不支持的文件格式，请上传jpg、png、gif、bmp等图片格式"),
-    PHOTO_UPDATE_FAILED(6004,"图片上传失败");
+    PHOTO_UPDATE_FAILED(6004,"图片上传失败"),
+
+    // Token相关(7000-7999)
+    TOKEN_EXPIRED(1012,"Token已过期，请尝试重新登录"),
+    TOKEN_INVALID_FORMAT(1013,"Token格式错误，请尝试重新登录"),
+    TOKEN_INVALID_SIGNATURE(1014,"Token签名无效，请尝试重新登录"),
+    TOKEN_ERROR(1015,"Token验证失败，请尝试重新登录");
 
 
     private final Integer code;

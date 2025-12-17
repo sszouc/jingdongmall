@@ -16,7 +16,7 @@ public class UserLoginResponse {
     @AllArgsConstructor
     public static class UserInfo {
         private Long id;        // 用户ID
-        private String nickname; // 用户昵称
+        private String username; // 用户昵称
         private String avatar;   // 用户头像
     }
 }

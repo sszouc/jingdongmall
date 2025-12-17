@@ -19,7 +19,7 @@ public class UserRegisterResponse {
     @AllArgsConstructor
     public static class UserInfo {
         private Long id;
-        private String userName;
+        private String username;
         private String avatar;
     }
 }

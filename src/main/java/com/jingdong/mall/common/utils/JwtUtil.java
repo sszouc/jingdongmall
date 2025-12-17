@@ -3,6 +3,7 @@ package com.jingdong.mall.common.utils;
 
 import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
+import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.service.UserService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -41,9 +42,10 @@ public class JwtUtil {
     /**
      * 生成JWT令牌
      */
-    public String generateToken(String userId) {
+    public String generateToken(User user) {
         return Jwts.builder()
-                .subject(userId)
+                .subject(user.getId().toString())
+                .claim("role", user.getRole())
                 .issuedAt(new java.util.Date())
                 .expiration(new java.util.Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
@@ -51,25 +53,15 @@ public class JwtUtil {
     }
 
     /**
-     * 从令牌中获取用户ID
+     * 解析JWT令牌的Claims
      */
-    public String getUserIdFromToken(String token) {
+    private Claims parseTokenClaims(String token) {
         try {
-
-            //TODO:记得这里要加黑名单机制，生产环境中先不做
-
-            // 验证token是否在黑名单中
-            // 由于UserService没有提供检查黑名单的方法，我们直接调用解析
-            // 如果token在黑名单中，会在解析时抛出异常
-            // 实际项目中应该先检查黑名单再解析
-
-            Claims claims = Jwts.parser()
+            return Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-
-            return claims.getSubject();
         } catch (ExpiredJwtException e) {
             log.warn("Token已过期: {}, 过期时间: {}",
                     e.getClaims().getSubject(),
@@ -85,6 +77,22 @@ public class JwtUtil {
             log.warn("Token验证失败: {}", e.getMessage());
             throw new BusinessException(ErrorCode.TOKEN_ERROR);
         }
+    }
+
+    /**
+     * 从令牌中获取用户ID
+     */
+    public String getUserIdFromToken(String token) {
+        Claims claims = parseTokenClaims(token);
+        return claims.getSubject();
+    }
+
+    /**
+     * 从令牌中获取用户角色
+     */
+    public String getUserRoleFromToken(String token) {
+        Claims claims = parseTokenClaims(token);
+        return claims.get("role", String.class);
     }
 
 }
