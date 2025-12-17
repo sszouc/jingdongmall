@@ -109,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
         //默认是普通用户
         user.setRole(0);
 
-        user.setAvatar("https://example.com/default-avatar.png");
+        user.setAvatar("http://47.104.222.121:8080/uploads/avatar/default-avatar.png");
         user.setStatus(1); // 正常状态
         user.setCreatedTime(LocalDateTime.now());
         user.setUpdatedTime(LocalDateTime.now());
