@@ -15,7 +15,7 @@ public interface UserService {
      * 退出登录
      * @param token JWT令牌
      */
-    void signout(String token) throws NoSuchAlgorithmException;
+    void signout(String token);
 
     /**
      * 获取用户信息

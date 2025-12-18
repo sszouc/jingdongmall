@@ -219,7 +219,7 @@ public class FileStorageUtil {
     /**
      * 验证图片文件
      */
-    private void validateImageFile(MultipartFile file) throws IOException {
+    private void validateImageFile(MultipartFile file){
         if (file == null || file.isEmpty()) {
             throw new  BusinessException(ErrorCode.ADDRESS_DELETE_FAILED);
         }

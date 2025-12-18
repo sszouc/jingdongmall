@@ -70,6 +70,6 @@ public class OrderDetailResponse {
         private BigDecimal price; // 单价
         private Integer quantity; // 数量
         private BigDecimal totalPrice; // 总价
-        private String afterSaleStatus; // 售后状态
+        //private String afterSaleStatus; // 售后状态
     }
 }

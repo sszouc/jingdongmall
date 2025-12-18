@@ -742,9 +742,6 @@ public class OrderServiceImpl implements OrderService {
         dto.setQuantity(item.getQuantity());
         dto.setTotalPrice(item.getTotalPrice());
 
-        // 转换售后状态
-        dto.setAfterSaleStatus(convertAfterSaleStatusToString(item.getAfterSaleStatus()));
-
         // 解析规格JSON
         if (item.getSkuSpecs() != null && !item.getSkuSpecs().isEmpty()) {
             try {
@@ -759,25 +756,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return dto;
-    }
-
-    /**
-     * 将售后状态码转换为字符串
-     */
-    private String convertAfterSaleStatusToString(Integer afterSaleStatus) {
-        if (afterSaleStatus == null) {
-            return null;
-        }
-
-        return switch (afterSaleStatus) {
-            case 0 -> null; // 无售后
-            case 1 -> "退款中";
-            case 2 -> "退款成功";
-            case 3 -> "退款失败";
-            case 4 -> "换货中";
-            case 5 -> "换货成功";
-            default -> null;
-        };
     }
 
     private Address validateAddress(Long userId, Integer addressId) {

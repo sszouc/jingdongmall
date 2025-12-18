@@ -26,7 +26,7 @@ public class WebConfig {
     public WebMvcConfigurer webMvcConfigurer() {
         return new WebMvcConfigurer() {
             @Override
-            public void addResourceHandlers(ResourceHandlerRegistry registry) {
+            public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
                 // Docker环境静态资源映射
                 String resourcePath = "file:" + uploadDir + "/";
 

@@ -19,7 +19,7 @@ public class OrderItem {
     private BigDecimal price;
     private Integer quantity;
     private BigDecimal totalPrice;
-    private Integer afterSaleStatus;
+    //private Integer afterSaleStatus;
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
 }
