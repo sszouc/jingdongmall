@@ -53,6 +53,8 @@ public class OrderDetailResponse {
         private LocalDateTime confirmTime; // 确认收货时间
         private LocalDateTime cancelTime; // 取消时间
         private String cancelReason; // 取消原因
+        private LocalDateTime refundTime; // 申请退款时间
+        private String refundReason; // 退款原因
         private String buyerRemark; // 买家留言
         private LocalDateTime createdAt; // 创建时间
         private LocalDateTime updatedAt; // 更新时间
@@ -70,6 +72,5 @@ public class OrderDetailResponse {
         private BigDecimal price; // 单价
         private Integer quantity; // 数量
         private BigDecimal totalPrice; // 总价
-        //private String afterSaleStatus; // 售后状态
     }
 }
