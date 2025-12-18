@@ -65,6 +65,8 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.ACCOUNT_OR_PASSWORD_ERROR);
         }
 
+        //TODO:从黑名单获取userId，判断这个用户有没有被封禁
+
         // 2. 验证密码
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BusinessException(ErrorCode.ACCOUNT_OR_PASSWORD_ERROR);
