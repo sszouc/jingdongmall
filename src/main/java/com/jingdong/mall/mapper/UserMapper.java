@@ -1,10 +1,13 @@
 // mapper/UserMapper.java
 package com.jingdong.mall.mapper;
 
+import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import com.jingdong.mall.model.entity.User;
+import com.jingdong.mall.provider.UserSqlProvider;
 import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 //不解释，参考spring三层架构
 @Mapper
@@ -58,4 +61,12 @@ public interface UserMapper {
 
     @Select("SELECT * FROM user WHERE id = #{id}")
     User selectById(Long id);
+
+    // 分页查询用户列表（管理员用）
+    @SelectProvider(type = UserSqlProvider.class, method = "selectUserListWithPage")
+    List<User> selectUserList(@Param("request") AdminUserListRequest request);
+
+    // 查询符合条件的用户总数
+    @SelectProvider(type = UserSqlProvider.class, method = "countUserList")
+    Long countUserList(@Param("request") AdminUserListRequest request);
 }

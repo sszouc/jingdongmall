@@ -4,6 +4,8 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
+import com.jingdong.mall.model.dto.request.AdminUserListRequest;
+import com.jingdong.mall.model.dto.response.AdminUserListResponse;
 import com.jingdong.mall.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -54,5 +56,42 @@ public class AdminController {
             throw new BusinessException(ErrorCode.TOKEN_INVALID_FORMAT);
         }
         return authHeader.substring(7);
+    }
+
+    @Operation(
+            summary = "分页查询用户列表",
+            description = "管理员分页查询用户列表，支持关键词搜索（用户名/手机号/邮箱）和状态筛选",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("")
+    public Result<AdminUserListResponse> getUserList(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "搜索关键词（用户名/手机号/邮箱）")
+            @RequestParam(required = false) String keyword,
+            @Parameter(description = "按照状态筛选：1正常，0禁用")
+            @RequestParam(required = false) Integer status,
+            @Parameter(description = "页码，默认为1")
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @Parameter(description = "每页数量，默认为10")
+            @RequestParam(required = false, defaultValue = "10") Integer pageSize) {
+
+        // 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+        String currentUserIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer currentUserRole = jwtUtil.getUserRoleFromToken(token);
+        Long currentUserId = Long.parseLong(currentUserIdStr);
+
+        // 构建请求参数
+        AdminUserListRequest request = new AdminUserListRequest();
+        request.setKeyword(keyword);
+        request.setStatus(status);
+        request.setPage(page);
+        request.setPageSize(pageSize);
+
+        // 调用服务层查询用户列表
+        AdminUserListResponse response = adminService.getUserList(currentUserId, currentUserRole, request);
+
+        return Result.success("查询成功", response);
     }
 }
