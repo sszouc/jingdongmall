@@ -98,9 +98,9 @@ public class JwtUtil {
     /**
      * 从令牌中获取用户角色
      */
-    public String getUserRoleFromToken(String token) {
+    public Integer getUserRoleFromToken(String token) {
         Claims claims = parseTokenClaims(token);
-        return claims.get("role", String.class);
+        return claims.get("role", Integer.class);
     }
 
     /**
