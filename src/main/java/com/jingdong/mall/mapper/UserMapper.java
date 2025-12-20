@@ -4,10 +4,13 @@ package com.jingdong.mall.mapper;
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.provider.UserSqlProvider;
+import com.jingdong.mall.provider.UserStatisticsProvider;
 import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.SelectProvider;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 //不解释，参考spring三层架构
 @Mapper
@@ -84,4 +87,14 @@ public interface UserMapper {
      */
     @Select("SELECT id, status, role, banned_start_time, banned_end_time FROM user WHERE id = #{id}")
     User selectStatusById(Long id);
+
+    /**
+     * 获取用户统计信息
+     * @param startTime 开始时间（可选）
+     * @param endTime 结束时间（可选）
+     * @return 统计结果Map
+     */
+    @SelectProvider(type = UserStatisticsProvider.class, method = "getUserStatistics")
+    Map<String, Object> getUserStatistics(@Param("startTime") String startTime,
+                                          @Param("endTime") String endTime);
 }

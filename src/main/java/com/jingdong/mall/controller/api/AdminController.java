@@ -7,6 +7,7 @@ import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import com.jingdong.mall.model.dto.request.UserStatusUpdateRequest;
 import com.jingdong.mall.model.dto.response.AdminUserListResponse;
+import com.jingdong.mall.model.dto.response.UserStatisticsResponse;
 import com.jingdong.mall.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -120,5 +121,32 @@ public class AdminController {
         adminService.updateUserStatus(currentUserId, currentUserRole, id, request);
 
         return Result.success("用户状态更新成功", null);
+    }
+
+    @Operation(
+            summary = "用户统计",
+            description = "管理员查看用户统计数据，包括用户总数、活跃用户、新注册用户、性别分布、年龄分布等",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("/statistics")
+    public Result<UserStatisticsResponse> getUserStatistics(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "开始时间，格式yyyy-MM-dd")
+            @RequestParam(required = false) String startTime,
+            @Parameter(description = "结束时间，格式yyyy-MM-dd")
+            @RequestParam(required = false) String endTime) {
+
+        // 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+        String currentUserIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer currentUserRole = jwtUtil.getUserRoleFromToken(token);
+        Long currentUserId = Long.parseLong(currentUserIdStr);
+
+        // 调用服务层获取用户统计
+        UserStatisticsResponse response = adminService.getUserStatistics(currentUserId, currentUserRole,
+                startTime, endTime);
+
+        return Result.success("用户统计获取成功", response);
     }
 }

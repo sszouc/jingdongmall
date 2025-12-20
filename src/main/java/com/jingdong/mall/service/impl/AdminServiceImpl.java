@@ -6,6 +6,7 @@ import com.jingdong.mall.mapper.UserMapper;
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import com.jingdong.mall.model.dto.request.UserStatusUpdateRequest;
 import com.jingdong.mall.model.dto.response.AdminUserListResponse;
+import com.jingdong.mall.model.dto.response.UserStatisticsResponse;
 import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.service.AdminService;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -241,5 +243,112 @@ public class AdminServiceImpl implements AdminService {
         item.setCreatedTime(user.getCreatedTime());
         item.setUpdatedTime(user.getUpdatedTime());
         return item;
+    }
+
+    @Override
+    public UserStatisticsResponse getUserStatistics(Long currentUserId, Integer currentUserRole,
+                                                    String startTime, String endTime) {
+        try {
+            log.info("管理员获取用户统计: adminId={}, startTime={}, endTime={}",
+                    currentUserId, startTime, endTime);
+
+            // 1. 验证当前用户权限
+            if (currentUserRole != User.Role.ADMIN && currentUserRole != User.Role.SUPER_ADMIN) {
+                throw new BusinessException(ErrorCode.NOT_PERMISSION);
+            }
+
+            // 2. 验证时间参数格式（如果提供）
+            if (startTime != null) {
+                try {
+                    java.time.LocalDate.parse(startTime);
+                } catch (Exception e) {
+                    throw new BusinessException(ErrorCode.INFO_UPDATE_FAIL, "开始时间格式不正确，请使用yyyy-MM-dd格式");
+                }
+            }
+
+            if (endTime != null) {
+                try {
+                    java.time.LocalDate.parse(endTime);
+                } catch (Exception e) {
+                    throw new BusinessException(ErrorCode.INFO_UPDATE_FAIL, "结束时间格式不正确，请使用yyyy-MM-dd格式");
+                }
+            }
+
+            // 3. 获取统计结果
+            Map<String, Object> statisticsMap = userMapper.getUserStatistics(startTime, endTime);
+
+            // 4. 转换为响应对象
+            return convertToResponse(statisticsMap);
+
+        } catch (BusinessException e) {
+            log.error("获取用户统计业务异常: adminId={}, error={}", currentUserId, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("获取用户统计系统异常: adminId={}, error={}", currentUserId, e.getMessage());
+            throw new BusinessException(ErrorCode.INFO_UPDATE_FAIL, "获取用户统计时发生系统错误");
+        }
+    }
+
+    /**
+     * 将数据库查询结果转换为响应对象
+     */
+    private UserStatisticsResponse convertToResponse(Map<String, Object> statisticsMap) {
+        if (statisticsMap == null || statisticsMap.isEmpty()) {
+            // 如果没有数据，返回空统计
+            return new UserStatisticsResponse(0, 0, 0, 0, 0,
+                    new UserStatisticsResponse.GenderDistribution(0, 0, 0),
+                    new UserStatisticsResponse.AgeDistribution(0, 0, 0, 0, 0));
+        }
+
+        UserStatisticsResponse response = new UserStatisticsResponse();
+
+        // 设置基础统计
+        response.setTotalUsers(getIntegerValue(statisticsMap.get("total_users")));
+        response.setActiveUsers(getIntegerValue(statisticsMap.get("active_users")));
+        response.setDisabledUsers(getIntegerValue(statisticsMap.get("disabled_users")));
+        response.setNewUsersToday(getIntegerValue(statisticsMap.get("new_users_today")));
+        response.setNewUsersThisMonth(getIntegerValue(statisticsMap.get("new_users_this_month")));
+
+        // 设置性别分布
+        UserStatisticsResponse.GenderDistribution genderDistribution =
+                new UserStatisticsResponse.GenderDistribution();
+        genderDistribution.setMale(getIntegerValue(statisticsMap.get("male_count")));
+        genderDistribution.setFemale(getIntegerValue(statisticsMap.get("female_count")));
+        genderDistribution.setUnknown(getIntegerValue(statisticsMap.get("unknown_count")));
+        response.setGenderDistribution(genderDistribution);
+
+        // 设置年龄分布
+        UserStatisticsResponse.AgeDistribution ageDistribution =
+                new UserStatisticsResponse.AgeDistribution();
+        ageDistribution.setUnder18(getIntegerValue(statisticsMap.get("under_18")));
+        ageDistribution.setAge18to25(getIntegerValue(statisticsMap.get("age_18_to_25")));
+        ageDistribution.setAge26to35(getIntegerValue(statisticsMap.get("age_26_to_35")));
+        ageDistribution.setAge36to45(getIntegerValue(statisticsMap.get("age_36_to_45")));
+        ageDistribution.setOver45(getIntegerValue(statisticsMap.get("over_45")));
+        response.setAgeDistribution(ageDistribution);
+
+        return response;
+    }
+
+    /**
+     * 安全地获取整数值
+     */
+    private Integer getIntegerValue(Object value) {
+        if (value == null) {
+            return 0;
+        }
+        try {
+            // 处理BigDecimal等类型
+            if (value instanceof Number) {
+                return ((Number) value).intValue();
+            } else if (value instanceof String) {
+                return Integer.parseInt((String) value);
+            } else {
+                return 0;
+            }
+        } catch (Exception e) {
+            log.warn("转换整数值失败: value={}, error={}", value, e.getMessage());
+            return 0;
+        }
     }
 }

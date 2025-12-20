@@ -3,6 +3,7 @@ package com.jingdong.mall.service;
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import com.jingdong.mall.model.dto.request.UserStatusUpdateRequest;
 import com.jingdong.mall.model.dto.response.AdminUserListResponse;
+import com.jingdong.mall.model.dto.response.UserStatisticsResponse;
 
 /**
  * 管理员服务接口
@@ -34,4 +35,14 @@ public interface AdminService {
      * @param request 封禁/解禁请求参数
      */
     void updateUserStatus(Long currentUserId, Integer currentUserRole, Long targetUserId, UserStatusUpdateRequest request);
+
+    /**
+     * 获取用户统计信息
+     * @param currentUserId 当前管理员用户ID
+     * @param currentUserRole 当前管理员角色
+     * @param startTime 开始时间（可选）
+     * @param endTime 结束时间（可选）
+     * @return 用户统计响应
+     */
+    UserStatisticsResponse getUserStatistics(Long currentUserId, Integer currentUserRole, String startTime, String endTime);
 }
