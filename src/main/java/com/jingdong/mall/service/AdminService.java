@@ -1,6 +1,7 @@
 package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
+import com.jingdong.mall.model.dto.request.UserStatusUpdateRequest;
 import com.jingdong.mall.model.dto.response.AdminUserListResponse;
 
 /**
@@ -24,4 +25,13 @@ public interface AdminService {
      * @return 用户列表响应
      */
     AdminUserListResponse getUserList(Long currentUserId, Integer currentUserRole, AdminUserListRequest request);
+
+    /**
+     * 封禁/解禁用户
+     * @param currentUserId 当前管理员用户ID
+     * @param currentUserRole 当前管理员角色
+     * @param targetUserId 目标用户ID
+     * @param request 封禁/解禁请求参数
+     */
+    void updateUserStatus(Long currentUserId, Integer currentUserRole, Long targetUserId, UserStatusUpdateRequest request);
 }

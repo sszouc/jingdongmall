@@ -5,12 +5,14 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
+import com.jingdong.mall.model.dto.request.UserStatusUpdateRequest;
 import com.jingdong.mall.model.dto.response.AdminUserListResponse;
 import com.jingdong.mall.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -93,5 +95,30 @@ public class AdminController {
         AdminUserListResponse response = adminService.getUserList(currentUserId, currentUserRole, request);
 
         return Result.success("查询成功", response);
+    }
+
+    @Operation(
+            summary = "封禁/解禁用户",
+            description = "管理员封禁或解禁用户（只能操作普通用户，role=0）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PatchMapping("/status/{id}")
+    public Result<String> updateUserStatus(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable Long id,
+            @Valid @RequestBody UserStatusUpdateRequest request) {
+
+        // 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+        String currentUserIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer currentUserRole = jwtUtil.getUserRoleFromToken(token);
+        Long currentUserId = Long.parseLong(currentUserIdStr);
+
+        // 调用服务层更新用户状态
+        adminService.updateUserStatus(currentUserId, currentUserRole, id, request);
+
+        return Result.success("用户状态更新成功", null);
     }
 }

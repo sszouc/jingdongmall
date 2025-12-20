@@ -3,6 +3,8 @@ package com.jingdong.mall.provider;
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import org.apache.ibatis.jdbc.SQL;
 
+import java.util.Map;
+
 /**
  * 用户动态SQL提供者
  */
@@ -64,5 +66,41 @@ public class UserSqlProvider {
             sql += " LIMIT " + request.getPageSize() + " OFFSET " + offset;
         }
         return sql;
+    }
+
+    /**
+     * 更新用户状态和封禁时间
+     */
+    public String updateUserStatusAndBanTime(Map<String, Object> params) {
+        Long id = (Long) params.get("id");
+        Integer status = (Integer) params.get("status");
+        java.time.LocalDateTime bannedStartTime = (java.time.LocalDateTime) params.get("bannedStartTime");
+        java.time.LocalDateTime bannedEndTime = (java.time.LocalDateTime) params.get("bannedEndTime");
+
+        SQL sql = new SQL();
+        sql.UPDATE("user");
+
+        if (status != null) {
+            sql.SET("status = #{status}");
+        }
+
+        if (bannedStartTime != null) {
+            sql.SET("banned_start_time = #{bannedStartTime}");
+        } else {
+            // 如果传入null，则设置为null
+            sql.SET("banned_start_time = null");
+        }
+
+        if (bannedEndTime != null) {
+            sql.SET("banned_end_time = #{bannedEndTime}");
+        } else {
+            sql.SET("banned_end_time = null");
+        }
+
+        // 总是更新updated_time
+        sql.SET("updated_time = NOW()");
+        sql.WHERE("id = #{id}");
+
+        return sql.toString();
     }
 }

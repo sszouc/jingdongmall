@@ -35,8 +35,6 @@ public enum ErrorCode {
     INFO_GET_FAIL(1017,"获取用户信息失败"),
     LOGOUT_FAILED(1018,"退出登录失败"),
 
-
-
     // 商品相关 (2000-2999)
     PRODUCT_NOT_EXIST(2001, "商品不存在"),
     PRODUCT_STOCK_NOT_ENOUGH(2002, "商品暂无库存"),
@@ -95,7 +93,18 @@ public enum ErrorCode {
     TOKEN_INVALID_FORMAT(7001,"Token格式错误，请尝试重新登录"),
     TOKEN_INVALID_SIGNATURE(7002,"Token签名无效，请尝试重新登录"),
     TOKEN_ERROR(7003,"Token验证失败，请尝试重新登录"),
-    TOKEN_ADD_BLACKLIST_FAILED(7004,"Token加入黑名单失败")
+    TOKEN_ADD_BLACKLIST_FAILED(7004,"Token加入黑名单失败"),
+
+    // 新增管理员相关错误码（8000-8999）
+    ADMIN_NOT_PERMISSION(8000, "需要管理员权限"),
+    ADMIN_CANNOT_DELETE_SELF(8001, "不能删除自己"),
+    ADMIN_CANNOT_DELETE_ADMIN(8002, "不能删除管理员用户"),
+    ADMIN_CANNOT_DELETE_SUPER_ADMIN(8003, "不能删除超级管理员"),
+    ADMIN_OPERATION_FAILED(8004, "管理员操作失败"),
+    ADMIN_QUERY_FAILED(8005, "查询用户列表失败"),
+    USER_ALREADY_BANNED(8006, "用户已被封禁"),
+    USER_NOT_BANNED(8007, "用户未被封禁"),
+    BAN_TIME_INVALID(8008, "封禁时长不合法")
     ;
 
 

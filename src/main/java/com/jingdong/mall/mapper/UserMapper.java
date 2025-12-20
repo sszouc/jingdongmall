@@ -69,4 +69,19 @@ public interface UserMapper {
     // 查询符合条件的用户总数
     @SelectProvider(type = UserSqlProvider.class, method = "countUserList")
     Long countUserList(@Param("request") AdminUserListRequest request);
+
+    /**
+     * 更新用户状态和封禁时间
+     */
+    @UpdateProvider(type = UserSqlProvider.class, method = "updateUserStatusAndBanTime")
+    int updateUserStatusAndBanTime(@Param("id") Long id,
+                                   @Param("status") Integer status,
+                                   @Param("bannedStartTime") java.time.LocalDateTime bannedStartTime,
+                                   @Param("bannedEndTime") java.time.LocalDateTime bannedEndTime);
+
+    /**
+     * 根据ID查询用户状态
+     */
+    @Select("SELECT id, status, role, banned_start_time, banned_end_time FROM user WHERE id = #{id}")
+    User selectStatusById(Long id);
 }
