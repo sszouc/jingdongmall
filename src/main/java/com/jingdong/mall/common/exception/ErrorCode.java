@@ -69,6 +69,7 @@ public enum ErrorCode {
     ORDER_CANNOT_REFUND(3014, "订单不能申请退款"),
     ORDER_CANNOT_PAY(3015, "订单不能支付"),
     ORDER_LIST_GET_FAILED(3016,"订单列表获取失败"),
+    ORDER_NOT_USER(3017,"该订单不属于你"),
 
 
     // 新增地址相关错误码（地址管理：4000-4999）

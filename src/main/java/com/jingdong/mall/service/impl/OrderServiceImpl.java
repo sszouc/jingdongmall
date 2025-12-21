@@ -615,10 +615,16 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // 2. 查询订单基本信息（确保订单属于当前用户）
-            Order order = orderMapper.selectByOrderSnAndUserId(orderSn, 3L);
+            Order order = orderMapper.selectByOrderSn(orderSn);
+
             if (order == null) {
                 throw new BusinessException(ErrorCode.ORDER_NOT_EXIST);
             }
+
+            if(!Objects.equals(order.getUserId(), userId)){
+                throw new BusinessException(ErrorCode.ORDER_NOT_USER);
+            }
+
 
             // 3. 查询订单项列表
             List<OrderItem> orderItems = orderItemMapper.selectByOrderId(order.getId());
