@@ -30,7 +30,7 @@ public class UserSqlProvider {
                 WHERE("status = #{request.status}");
             }
 
-            ORDER_BY("created_time DESC");
+            ORDER_BY("id ASC");
         }}.toString();
     }
 
