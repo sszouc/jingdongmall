@@ -4,16 +4,15 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
+import com.jingdong.mall.model.dto.response.AdminInfoResponse;
+import com.jingdong.mall.service.AdminUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
 
@@ -25,6 +24,9 @@ public class AdminUserController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private AdminUserService adminUserService;
 
     @Operation(
             summary = "管理员登出",
@@ -63,6 +65,30 @@ public class AdminUserController {
             log.error("管理员登出失败，管理员ID：{}", userId, e);
             throw new BusinessException(ErrorCode.LOGOUT_FAILED);
         }
+    }
+
+    @Operation(
+            summary = "获取管理员信息",
+            description = "获取当前登录的管理员信息",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("/info")
+    public Result<AdminInfoResponse> getAdminInfo(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 1. 提取token
+        String token = extractTokenFromHeader(authHeader);
+
+        // 2. 验证token并获取用户信息
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer userRole = jwtUtil.getUserRoleFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 3. 调用服务层获取管理员信息
+        AdminInfoResponse response = adminUserService.getAdminInfo(userId, userRole);
+
+        return Result.success("成功", response);
     }
 
     /**

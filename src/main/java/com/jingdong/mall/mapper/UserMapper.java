@@ -1,4 +1,3 @@
-// mapper/UserMapper.java
 package com.jingdong.mall.mapper;
 
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;

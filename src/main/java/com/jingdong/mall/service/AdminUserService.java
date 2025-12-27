@@ -1,5 +1,7 @@
 package com.jingdong.mall.service;
 
+import com.jingdong.mall.model.dto.response.AdminInfoResponse;
+
 /**
  * 管理员用户服务接口
  */
@@ -12,4 +14,12 @@ public interface AdminUserService {
      * @param userRole 管理员角色
      */
     void adminSignout(String token, Long userId, Integer userRole);
+
+    /**
+     * 获取管理员信息
+     * @param userId 管理员ID
+     * @param userRole 管理员角色
+     * @return 管理员信息
+     */
+    AdminInfoResponse getAdminInfo(Long userId, Integer userRole);
 }
