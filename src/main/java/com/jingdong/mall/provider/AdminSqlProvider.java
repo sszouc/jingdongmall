@@ -35,4 +35,30 @@ public class AdminSqlProvider {
 
         return sql.toString();
     }
+
+    /**
+     * 删除管理员用户（物理删除）
+     */
+    public String deleteAdminUser(Long userId) {
+        SQL sql = new SQL();
+        sql.DELETE_FROM("user");
+        sql.WHERE("id = #{userId}");
+        sql.WHERE("role = 1"); // 只能删除普通管理员，不能删除超级管理员
+        sql.WHERE("status = 1"); // 只能删除状态正常的用户
+
+        return sql.toString();
+    }
+
+    /**
+     * 查询管理员用户信息（包括角色验证）
+     */
+    public String selectAdminUserById(Long userId) {
+        SQL sql = new SQL();
+        sql.SELECT("id, username, phone, email, role, status");
+        sql.FROM("user");
+        sql.WHERE("id = #{userId}");
+        sql.WHERE("role IN (1, 2)"); // 只查询管理员或超级管理员
+
+        return sql.toString();
+    }
 }

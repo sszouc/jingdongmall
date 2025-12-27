@@ -74,6 +74,101 @@ public class AdminManagementServiceImpl implements AdminManagementService {
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteAdmin(Long currentUserId, Integer currentUserRole, Long targetAdminId) {
+        // 1. 权限验证：只有超级管理员(role=2)可以删除管理员
+        validatePermission(currentUserRole);
+
+        try {
+            // 2. 验证目标用户是否存在且是管理员
+            User targetAdmin = validateTargetAdmin(targetAdminId);
+
+            // 3. 验证不能删除自己
+            validateNotSelf(currentUserId, targetAdminId);
+
+            // 4. 验证不能删除超级管理员
+            validateNotSuperAdmin(targetAdmin);
+
+            // 5. 检查是否至少保留一个管理员（可选，根据业务需求）
+            //validateMinimumAdmins();
+
+            // 6. 删除管理员
+            int result = userMapper.deleteAdminUser(targetAdminId);
+            if (result <= 0) {
+                log.error("删除管理员失败，目标管理员ID：{}，操作人ID：{}", targetAdminId, currentUserId);
+                throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED, "删除管理员失败");
+            }
+
+            // 7. 记录日志
+            log.info("管理员删除成功，操作人：{}，被删除的管理员ID：{}，用户名：{}",
+                    currentUserId, targetAdminId, targetAdmin.getUsername());
+
+        } catch (BusinessException e) {
+            // 业务异常直接抛出
+            throw e;
+        } catch (Exception e) {
+            log.error("删除管理员发生系统异常，目标管理员ID：{}，操作人ID：{}", targetAdminId, currentUserId, e);
+            throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED, "系统异常，删除管理员失败");
+        }
+    }
+
+    /**
+     * 验证目标用户是否存在且是管理员
+     */
+    private User validateTargetAdmin(Long targetAdminId) {
+        if (targetAdminId == null) {
+            throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED, "管理员ID不能为空");
+        }
+
+        User targetAdmin = userMapper.selectAdminUserById(targetAdminId);
+        if (targetAdmin == null) {
+            log.warn("尝试删除不存在的管理员，管理员ID：{}", targetAdminId);
+            throw new BusinessException(ErrorCode.USER_NOT_EXIST);
+        }
+
+        // 确认是管理员（role=1）或超级管理员（role=2）
+        if (targetAdmin.getRole() == 0) {
+            log.warn("尝试删除普通用户作为管理员，用户ID：{}", targetAdminId);
+            throw new BusinessException(ErrorCode.ADMIN_CANNOT_DELETE_ADMIN, "该用户不是管理员");
+        }
+
+        return targetAdmin;
+    }
+
+    /**
+     * 验证不能删除自己
+     */
+    private void validateNotSelf(Long currentUserId, Long targetAdminId) {
+        if (currentUserId.equals(targetAdminId)) {
+            log.warn("管理员尝试删除自己，管理员ID：{}", currentUserId);
+            throw new BusinessException(ErrorCode.ADMIN_CANNOT_DELETE_SELF);
+        }
+    }
+
+    /**
+     * 验证不能删除超级管理员
+     */
+    private void validateNotSuperAdmin(User targetAdmin) {
+        if (targetAdmin.getRole() == 2) {
+            log.warn("尝试删除超级管理员，管理员ID：{}", targetAdmin.getId());
+            throw new BusinessException(ErrorCode.ADMIN_CANNOT_DELETE_SUPER_ADMIN);
+        }
+    }
+
+    /**
+     * 验证至少保留一个管理员（根据业务需求可选）
+     */
+    private void validateMinimumAdmins() {
+        // 如果业务要求至少保留一个管理员，可以在此验证
+        int adminCount = userMapper.countAdminUsers();
+        if (adminCount <= 1) {
+            // 这里假设至少需要保留一个管理员
+            log.warn("尝试删除最后一个管理员，当前管理员数量：{}", adminCount);
+            throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED, "至少需要保留一个管理员");
+        }
+    }
+
     /**
      * 验证权限：只有超级管理员可以创建管理员
      */

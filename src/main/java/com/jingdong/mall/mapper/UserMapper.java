@@ -116,4 +116,22 @@ public interface UserMapper {
      */
     @Select("SELECT COUNT(*) FROM user WHERE username = #{username}")
     int countByUsername(@Param("username") String username);
+
+    /**
+     * 查询管理员用户信息
+     */
+    @SelectProvider(type = AdminSqlProvider.class, method = "selectAdminUserById")
+    User selectAdminUserById(@Param("userId") Long userId);
+
+    /**
+     * 删除管理员用户
+     */
+    @DeleteProvider(type = AdminSqlProvider.class, method = "deleteAdminUser")
+    int deleteAdminUser(@Param("userId") Long userId);
+
+    /**
+     * 统计当前管理员数量（不包括超级管理员）
+     */
+    @Select("SELECT COUNT(*) FROM user WHERE role = 1 AND status = 1")
+    int countAdminUsers();
 }

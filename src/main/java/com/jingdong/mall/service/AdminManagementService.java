@@ -16,4 +16,12 @@ public interface AdminManagementService {
      * @return 创建的管理员信息
      */
     AdminCreateResponse createAdmin(Long currentUserId, Integer currentUserRole, AdminCreateRequest request);
+
+    /**
+     * 删除管理员
+     * @param currentUserId 当前操作用户ID
+     * @param currentUserRole 当前操作用户角色
+     * @param targetAdminId 要删除的管理员ID
+     */
+    void deleteAdmin(Long currentUserId, Integer currentUserRole, Long targetAdminId);
 }

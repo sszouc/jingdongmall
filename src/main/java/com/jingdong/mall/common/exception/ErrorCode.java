@@ -109,7 +109,9 @@ public enum ErrorCode {
     BAN_TIME_INVALID(8008, "封禁时长不合法"),
     ADMIN_CREATE_FAILED(8009, "创建管理员失败"),
     ADMIN_PHONE_ALREADY_EXISTS(8010, "该手机号已经是管理员"),
-    ADMIN_GENERATE_USERNAME_FAILED(8011, "生成用户名失败")
+    ADMIN_GENERATE_USERNAME_FAILED(8011, "生成用户名失败"),
+    ADMIN_DELETE_FAILED(8012, "删除管理员失败"), // 新增
+    LAST_ADMIN_CANNOT_BE_DELETED(8013, "至少需要保留一个管理员")
     ;
 
 

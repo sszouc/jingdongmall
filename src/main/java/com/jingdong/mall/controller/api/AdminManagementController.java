@@ -56,6 +56,35 @@ public class AdminManagementController {
         return Result.success("管理员创建成功", response);
     }
 
+    @Operation(
+            summary = "删除管理员",
+            description = "超级管理员删除普通管理员（不能删除自己和超级管理员）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @DeleteMapping("/{id}")
+    public Result<String> deleteAdmin(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "要删除的管理员ID", required = true, example = "10")
+            @PathVariable Long id) {
+
+        // 1. 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+        String currentUserIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer currentUserRole = jwtUtil.getUserRoleFromToken(token);
+        Long currentUserId = Long.parseLong(currentUserIdStr);
+
+        // 2. 验证路径参数
+        if (id == null || id <= 0) {
+            throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED, "管理员ID无效");
+        }
+
+        // 3. 调用服务层删除管理员
+        adminManagementService.deleteAdmin(currentUserId, currentUserRole, id);
+
+        return Result.success("管理员删除成功", null);
+    }
+
     /**
      * 从请求头中提取token
      */
