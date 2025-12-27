@@ -3,10 +3,7 @@ package com.jingdong.mall.mapper;
 import com.jingdong.mall.model.dto.request.AdminUpdateRequest;
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import com.jingdong.mall.model.entity.User;
-import com.jingdong.mall.provider.AdminSqlProvider;
-import com.jingdong.mall.provider.AdminUpdateSqlProvider;
-import com.jingdong.mall.provider.UserSqlProvider;
-import com.jingdong.mall.provider.UserStatisticsProvider;
+import com.jingdong.mall.provider.*;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.annotations.SelectProvider;
 
@@ -143,4 +140,18 @@ public interface UserMapper {
     int updateAdminInfo(@Param("request") AdminUpdateRequest request,
                         @Param("userId") Long userId,
                         @Param("updatedTime") LocalDateTime updatedTime);
+
+    /**
+     * 查询管理员密码信息（包括密码、角色、状态）
+     */
+    @SelectProvider(type = AdminPasswordSqlProvider.class, method = "selectAdminPassword")
+    Map<String, Object> selectAdminPassword(@Param("userId") Long userId);
+
+    /**
+     * 更新管理员密码
+     */
+    @UpdateProvider(type = AdminPasswordSqlProvider.class, method = "updateAdminPassword")
+    int updateAdminPassword(@Param("userId") Long userId,
+                            @Param("newPassword") String newPassword,
+                            @Param("updatedTime") LocalDateTime updatedTime);
 }

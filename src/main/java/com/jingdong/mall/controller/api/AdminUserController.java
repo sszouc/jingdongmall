@@ -4,6 +4,7 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
+import com.jingdong.mall.model.dto.request.AdminChangePasswordRequest;
 import com.jingdong.mall.model.dto.request.AdminUpdateRequest;
 import com.jingdong.mall.model.dto.response.AdminInfoResponse;
 import com.jingdong.mall.service.AdminUserService;
@@ -126,6 +127,31 @@ public class AdminUserController {
         adminUserService.updateAdminInfo(userId, userRole, request);
 
         return Result.success("管理员信息更新成功", null);
+    }
+
+    @Operation(
+            summary = "修改管理员密码",
+            description = "修改当前登录的管理员密码（修改成功后当前token将失效）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PutMapping("/change-password")
+    public Result<String> changeAdminPassword(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody AdminChangePasswordRequest request) {
+
+        // 1. 提取token
+        String token = extractTokenFromHeader(authHeader);
+
+        // 2. 验证token并获取用户信息
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer userRole = jwtUtil.getUserRoleFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 3. 调用服务层修改管理员密码
+        adminUserService.changeAdminPassword(token, userId, userRole, request);
+
+        return Result.success("密码修改成功", null);
     }
 
     /**
