@@ -154,4 +154,16 @@ public interface UserMapper {
     int updateAdminPassword(@Param("userId") Long userId,
                             @Param("newPassword") String newPassword,
                             @Param("updatedTime") LocalDateTime updatedTime);
+
+    /**
+     * 根据手机号或邮箱查询管理员用户
+     */
+    @SelectProvider(type = AdminAuthSqlProvider.class, method = "selectAdminByAccount")
+    User selectAdminByAccount(@Param("account") String account);
+
+    /**
+     * 根据手机号查询管理员用户（用于找回密码）
+     */
+    @SelectProvider(type = AdminAuthSqlProvider.class, method = "selectAdminByPhone")
+    User selectAdminByPhone(@Param("phone") String phone);
 }
