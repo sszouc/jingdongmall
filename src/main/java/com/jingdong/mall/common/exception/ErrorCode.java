@@ -106,7 +106,10 @@ public enum ErrorCode {
     ADMIN_QUERY_FAILED(8005, "查询用户列表失败"),
     USER_ALREADY_BANNED(8006, "用户已被封禁"),
     USER_NOT_BANNED(8007, "用户未被封禁"),
-    BAN_TIME_INVALID(8008, "封禁时长不合法")
+    BAN_TIME_INVALID(8008, "封禁时长不合法"),
+    ADMIN_CREATE_FAILED(8009, "创建管理员失败"),
+    ADMIN_PHONE_ALREADY_EXISTS(8010, "该手机号已经是管理员"),
+    ADMIN_GENERATE_USERNAME_FAILED(8011, "生成用户名失败")
     ;
 
 

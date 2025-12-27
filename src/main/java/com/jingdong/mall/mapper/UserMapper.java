@@ -3,6 +3,7 @@ package com.jingdong.mall.mapper;
 
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import com.jingdong.mall.model.entity.User;
+import com.jingdong.mall.provider.AdminSqlProvider;
 import com.jingdong.mall.provider.UserSqlProvider;
 import com.jingdong.mall.provider.UserStatisticsProvider;
 import org.apache.ibatis.annotations.*;
@@ -97,4 +98,22 @@ public interface UserMapper {
     @SelectProvider(type = UserStatisticsProvider.class, method = "getUserStatistics")
     Map<String, Object> getUserStatistics(@Param("startTime") String startTime,
                                           @Param("endTime") String endTime);
+
+    /**
+     * 检查是否存在具有管理员角色的用户
+     */
+    @SelectProvider(type = AdminSqlProvider.class, method = "checkAdminExists")
+    int checkAdminExists(@Param("phone") String phone);
+
+    /**
+     * 更新用户角色为管理员
+     */
+    @UpdateProvider(type = AdminSqlProvider.class, method = "updateUserToAdmin")
+    int updateUserToAdmin(@Param("userId") Long userId);
+
+    /**
+     * 统计用户名数量（用于生成唯一用户名）
+     */
+    @Select("SELECT COUNT(*) FROM user WHERE username = #{username}")
+    int countByUsername(@Param("username") String username);
 }
