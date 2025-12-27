@@ -6,6 +6,7 @@ import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.AdminCreateRequest;
 import com.jingdong.mall.model.dto.response.AdminCreateResponse;
+import com.jingdong.mall.model.dto.response.AdminListResponse;
 import com.jingdong.mall.service.AdminManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -83,6 +84,28 @@ public class AdminManagementController {
         adminManagementService.deleteAdmin(currentUserId, currentUserRole, id);
 
         return Result.success("管理员删除成功", null);
+    }
+
+    @Operation(
+            summary = "获取管理员列表",
+            description = "超级管理员获取所有普通管理员列表（role=1）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("/list")
+    public Result<AdminListResponse> getAdminList(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader) {
+
+        // 1. 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+        String currentUserIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer currentUserRole = jwtUtil.getUserRoleFromToken(token);
+        Long currentUserId = Long.parseLong(currentUserIdStr);
+
+        // 2. 调用服务层获取管理员列表
+        AdminListResponse response = adminManagementService.getAdminList(currentUserId, currentUserRole);
+
+        return Result.success("成功", response);
     }
 
     /**

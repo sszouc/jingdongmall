@@ -6,16 +6,20 @@ import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.mapper.UserMapper;
 import com.jingdong.mall.model.dto.request.AdminCreateRequest;
 import com.jingdong.mall.model.dto.response.AdminCreateResponse;
+import com.jingdong.mall.model.dto.response.AdminListResponse;
 import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.service.AdminManagementService;
-import com.jingdong.mall.service.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -27,9 +31,6 @@ public class AdminManagementServiceImpl implements AdminManagementService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuthService authService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -111,6 +112,129 @@ public class AdminManagementServiceImpl implements AdminManagementService {
             log.error("删除管理员发生系统异常，目标管理员ID：{}，操作人ID：{}", targetAdminId, currentUserId, e);
             throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED, "系统异常，删除管理员失败");
         }
+    }
+
+    @Override
+    public AdminListResponse getAdminList(Long currentUserId, Integer currentUserRole) {
+        // 1. 权限验证：只有超级管理员(role=2)可以获取管理员列表
+        validateSuperAdminPermission(currentUserRole);
+
+        try {
+            // 2. 查询管理员列表
+            List<Map<String, Object>> adminMaps = userMapper.selectAllAdmins();
+
+            // 3. 统计管理员数量
+            Integer total = userMapper.countAdmins();
+
+            // 4. 转换为AdminListResponse
+            AdminListResponse response = convertToAdminListResponse(adminMaps, total);
+
+            // 5. 记录日志（可选，生产环境可改为debug级别）
+            log.debug("超级管理员获取管理员列表成功，操作人ID：{}，管理员数量：{}", currentUserId, total);
+
+            return response;
+
+        } catch (BusinessException e) {
+            // 业务异常直接抛出
+            throw e;
+        } catch (Exception e) {
+            log.error("获取管理员列表发生系统异常，操作人ID：{}", currentUserId, e);
+            throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED, "获取管理员列表失败");
+        }
+    }
+
+    /**
+     * 验证权限：只有超级管理员可以获取管理员列表
+     */
+    private void validateSuperAdminPermission(Integer currentUserRole) {
+        if (currentUserRole == null || currentUserRole != 2) {
+            log.warn("非超级管理员尝试获取管理员列表，当前角色：{}", currentUserRole);
+            throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
+        }
+    }
+
+    /**
+     * 将查询结果转换为AdminListResponse
+     */
+    private AdminListResponse convertToAdminListResponse(List<Map<String, Object>> adminMaps, Integer total) {
+        List<AdminListResponse.AdminItem> adminItems = new ArrayList<>();
+
+        if (adminMaps != null) {
+            for (Map<String, Object> adminMap : adminMaps) {
+                AdminListResponse.AdminItem item = convertMapToAdminItem(adminMap);
+                adminItems.add(item);
+            }
+        }
+
+        return new AdminListResponse(total, adminItems);
+    }
+
+    /**
+     * 将Map转换为AdminItem
+     */
+    private AdminListResponse.AdminItem convertMapToAdminItem(Map<String, Object> adminMap) {
+        AdminListResponse.AdminItem item = new AdminListResponse.AdminItem();
+
+        // 设置ID
+        if (adminMap.get("id") != null) {
+            item.setId(((Number) adminMap.get("id")).longValue());
+        }
+
+        // 设置用户名
+        item.setUsername((String) adminMap.get("username"));
+
+        // 设置手机号
+        item.setPhone((String) adminMap.get("phone"));
+
+        // 设置邮箱
+        item.setEmail((String) adminMap.get("email"));
+
+        // 设置头像
+        item.setAvatar((String) adminMap.get("avatar"));
+
+        // 设置状态（转换为字符串）
+        Integer status = (Integer) adminMap.get("status");
+        item.setStatus(convertStatusToString(status));
+
+        // 设置生日
+        if (adminMap.get("birthday") != null) {
+            if (adminMap.get("birthday") instanceof java.sql.Date) {
+                item.setBirthday(((java.sql.Date) adminMap.get("birthday")).toLocalDate());
+            } else if (adminMap.get("birthday") instanceof LocalDate) {
+                item.setBirthday((LocalDate) adminMap.get("birthday"));
+            }
+        }
+
+        // 设置创建时间
+        if (adminMap.get("created_time") != null) {
+            if (adminMap.get("created_time") instanceof java.sql.Timestamp) {
+                item.setCreatedTime(((java.sql.Timestamp) adminMap.get("created_time")).toLocalDateTime());
+            } else if (adminMap.get("created_time") instanceof LocalDateTime) {
+                item.setCreatedTime((LocalDateTime) adminMap.get("created_time"));
+            }
+        }
+
+        // 设置更新时间
+        if (adminMap.get("updated_time") != null) {
+            if (adminMap.get("updated_time") instanceof java.sql.Timestamp) {
+                item.setUpdatedTime(((java.sql.Timestamp) adminMap.get("updated_time")).toLocalDateTime());
+            } else if (adminMap.get("updated_time") instanceof LocalDateTime) {
+                item.setUpdatedTime((LocalDateTime) adminMap.get("updated_time"));
+            }
+        }
+
+        return item;
+    }
+
+    /**
+     * 将数据库状态转换为字符串
+     */
+    private String convertStatusToString(Integer status) {
+        if (status == null) {
+            return "unknown";
+        }
+
+        return status == 1 ? "active" : "disabled";
     }
 
     /**

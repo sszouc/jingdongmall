@@ -166,4 +166,16 @@ public interface UserMapper {
      */
     @SelectProvider(type = AdminAuthSqlProvider.class, method = "selectAdminByPhone")
     User selectAdminByPhone(@Param("phone") String phone);
+
+    /**
+     * 查询所有管理员列表（role=1）
+     */
+    @SelectProvider(type = AdminListSqlProvider.class, method = "selectAllAdmins")
+    List<Map<String, Object>> selectAllAdmins();
+
+    /**
+     * 统计管理员数量（role=1）
+     */
+    @SelectProvider(type = AdminListSqlProvider.class, method = "countAdmins")
+    Integer countAdmins();
 }
