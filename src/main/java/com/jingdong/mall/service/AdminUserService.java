@@ -1,5 +1,6 @@
 package com.jingdong.mall.service;
 
+import com.jingdong.mall.model.dto.request.AdminUpdateRequest;
 import com.jingdong.mall.model.dto.response.AdminInfoResponse;
 
 /**
@@ -22,4 +23,12 @@ public interface AdminUserService {
      * @return 管理员信息
      */
     AdminInfoResponse getAdminInfo(Long userId, Integer userRole);
+
+    /**
+     * 更新管理员信息
+     * @param userId 管理员ID
+     * @param userRole 管理员角色
+     * @param request 更新请求
+     */
+    void updateAdminInfo(Long userId, Integer userRole, AdminUpdateRequest request);
 }

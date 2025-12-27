@@ -1,8 +1,10 @@
 package com.jingdong.mall.mapper;
 
+import com.jingdong.mall.model.dto.request.AdminUpdateRequest;
 import com.jingdong.mall.model.dto.request.AdminUserListRequest;
 import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.provider.AdminSqlProvider;
+import com.jingdong.mall.provider.AdminUpdateSqlProvider;
 import com.jingdong.mall.provider.UserSqlProvider;
 import com.jingdong.mall.provider.UserStatisticsProvider;
 import org.apache.ibatis.annotations.*;
@@ -133,4 +135,12 @@ public interface UserMapper {
      */
     @Select("SELECT COUNT(*) FROM user WHERE role = 1 AND status = 1")
     int countAdminUsers();
+
+    /**
+     * 更新管理员信息
+     */
+    @UpdateProvider(type = AdminUpdateSqlProvider.class, method = "updateAdminInfo")
+    int updateAdminInfo(@Param("request") AdminUpdateRequest request,
+                        @Param("userId") Long userId,
+                        @Param("updatedTime") LocalDateTime updatedTime);
 }

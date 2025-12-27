@@ -4,12 +4,14 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
+import com.jingdong.mall.model.dto.request.AdminUpdateRequest;
 import com.jingdong.mall.model.dto.response.AdminInfoResponse;
 import com.jingdong.mall.service.AdminUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -99,6 +101,31 @@ public class AdminUserController {
             log.warn("非管理员尝试使用管理员登出接口，用户ID：{}，角色：{}", userId, userRole);
             throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
         }
+    }
+
+    @Operation(
+            summary = "更新管理员信息",
+            description = "更新当前登录的管理员信息（只能更新自己的信息）",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PutMapping("/update")
+    public Result<String> updateAdminInfo(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody AdminUpdateRequest request) {
+
+        // 1. 提取token
+        String token = extractTokenFromHeader(authHeader);
+
+        // 2. 验证token并获取用户信息
+        String userIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer userRole = jwtUtil.getUserRoleFromToken(token);
+        Long userId = Long.parseLong(userIdStr);
+
+        // 3. 调用服务层更新管理员信息
+        adminUserService.updateAdminInfo(userId, userRole, request);
+
+        return Result.success("管理员信息更新成功", null);
     }
 
     /**
