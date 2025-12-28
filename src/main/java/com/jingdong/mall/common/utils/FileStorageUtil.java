@@ -28,7 +28,7 @@ public class FileStorageUtil {
     @Value("${file.upload-dir:/app/uploads/avatar}")
     private String uploadDir;
 
-    @Value("${file.base-url:http://localhost:8080/uploads/avatar}")
+    @Value("${file.base-url:/uploads/avatar}")
     private String baseUrl;
 
     private Path uploadBasePath;
@@ -120,7 +120,6 @@ public class FileStorageUtil {
 
             log.info("文件保存到Docker volume: {}", targetLocation);
             log.info("文件大小: {} bytes", Files.size(targetLocation));
-
             // 5. 生成访问URL
             String cleanBaseUrl = baseUrl.endsWith("/") ?
                     baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
