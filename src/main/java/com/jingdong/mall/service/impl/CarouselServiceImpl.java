@@ -2,13 +2,17 @@ package com.jingdong.mall.service.impl;
 
 import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
+import com.jingdong.mall.mapper.CarouselAddMapper;
 import com.jingdong.mall.mapper.CarouselMapper;
+import com.jingdong.mall.model.dto.request.CarouselAddRequest;
+import com.jingdong.mall.model.dto.response.CarouselAddResponse;
 import com.jingdong.mall.model.dto.response.CarouselResponse;
 import com.jingdong.mall.model.entity.Carousel;
 import com.jingdong.mall.service.CarouselService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +23,7 @@ public class CarouselServiceImpl implements CarouselService {
 
     @Autowired
     private CarouselMapper carouselMapper;
+    private CarouselAddMapper carouselAddMapper;
 
     @Override
     public List<CarouselResponse> getActiveCarousels() {
@@ -40,6 +45,44 @@ public class CarouselServiceImpl implements CarouselService {
         }
     }
 
+    // 新增方法实现
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CarouselAddResponse addCarousel(CarouselAddRequest request) {
+        try {
+            log.info("新增轮播图请求：{}", request);
+
+            // 构建轮播图实体，设置默认值
+            Carousel carousel = new Carousel();
+            carousel.setImgUrl(request.getImgUrl());
+            carousel.setLinkUrl(request.getLinkUrl());
+            carousel.setSortOrder(request.getSortOrder() != null ? request.getSortOrder() : 0);
+            carousel.setIsActive(request.getIsActive() != null ? request.getIsActive() : 1);
+
+            // 执行新增
+            int result = carouselAddMapper.insertCarousel(carousel);
+            if (result <= 0) {
+                throw new BusinessException(ErrorCode.PHOTO_UPDATE_FAILED);
+            }
+
+            // 构建响应
+            CarouselAddResponse response = new CarouselAddResponse();
+            response.setId(carousel.getId());
+            response.setImgUrl(carousel.getImgUrl());
+            response.setLinkUrl(carousel.getLinkUrl());
+            response.setSortOrder(carousel.getSortOrder());
+            response.setIsActive(carousel.getIsActive());
+
+            log.info("新增轮播图成功，ID：{}", carousel.getId());
+            return response;
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("新增轮播图系统异常", e);
+            throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED);
+        }
+    }
     /**
      * 实体类转换为响应DTO
      */
