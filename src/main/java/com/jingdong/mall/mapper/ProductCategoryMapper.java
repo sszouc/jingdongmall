@@ -2,6 +2,7 @@ package com.jingdong.mall.mapper;
 
 import com.jingdong.mall.model.dto.request.ProductCategoryUpdateRequest;
 import com.jingdong.mall.model.entity.ProductCategory;
+import com.jingdong.mall.provider.ProductCategoryDeleteProvider;
 import com.jingdong.mall.provider.ProductCategorySqlProvider;
 import org.apache.ibatis.annotations.*;
 
@@ -31,4 +32,22 @@ public interface ProductCategoryMapper {
 
     @SelectProvider(type = ProductCategorySqlProvider.class, method = "countById")
     int countById(@Param("id") Integer id);
+
+    /**
+     * 统计子分类数量
+     */
+    @SelectProvider(type = ProductCategoryDeleteProvider.class, method = "countSubCategories")
+    int countSubCategories(@Param("id") Integer id);
+
+    /**
+     * 统计分类下商品数量
+     */
+    @SelectProvider(type = ProductCategoryDeleteProvider.class, method = "countProductsByCategory")
+    int countProductsByCategory(@Param("id") Integer id);
+
+    /**
+     * 逻辑删除分类
+     */
+    @DeleteProvider(type = ProductCategoryDeleteProvider.class, method = "deleteCategory")
+    int deleteCategory(@Param("id") Integer id);
 }

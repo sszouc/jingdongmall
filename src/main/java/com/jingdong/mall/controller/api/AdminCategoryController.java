@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -51,5 +52,18 @@ public class AdminCategoryController {
         request.setId(id);
         ProductCategoryUpdateResponse response = productCategoryService.updateCategory(request);
         return Result.success("分类更新成功", response);
+    }
+
+    @Operation(
+            summary = "删除分类",
+            description = "删除指定ID的分类，需检查是否有子分类或商品占用，有占用则抛出异常"
+    )
+    @DeleteMapping("/{id}")
+    public Result<String> deleteCategory(
+            @Parameter(description = "分类ID", required = true, example = "1")
+            @PathVariable @NotNull(message = "分类ID不能为空") Integer id) {
+        productCategoryService.deleteCategory(id);
+        log.info("分类删除成功，ID: {}", id);
+        return Result.success("分类删除成功", null);
     }
 }

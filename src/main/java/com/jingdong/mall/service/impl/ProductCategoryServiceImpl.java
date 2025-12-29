@@ -92,4 +92,36 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED);
         }
     }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteCategory(Integer id) {
+        try {
+            // 1. 验证分类是否存在（复用已有方法）
+            if (productCategoryMapper.countById(id) == 0) {
+                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+            }
+
+            // 2. 检查是否有关联子分类
+            int subCategoryCount = productCategoryMapper.countSubCategories(id);
+            if (subCategoryCount > 0) {
+                throw new BusinessException(ErrorCode.CATEGORY_PARAM_ERROR, "该分类下存在子分类，无法删除");
+            }
+
+            // 3. 检查是否有关联商品
+            int productCount = productCategoryMapper.countProductsByCategory(id);
+            if (productCount > 0) {
+                throw new BusinessException(ErrorCode.CATEGORY_PARAM_ERROR, "该分类下存在商品，无法删除");
+            }
+
+            // 4. 执行逻辑删除
+            int result = productCategoryMapper.deleteCategory(id);
+            if (result <= 0) {
+                throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED, "分类删除失败");
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED, "分类删除系统异常");
+        }
+    }
 }
