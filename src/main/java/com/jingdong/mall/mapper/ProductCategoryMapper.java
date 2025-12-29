@@ -1,6 +1,8 @@
 package com.jingdong.mall.mapper;
 
+import com.jingdong.mall.model.dto.request.ProductCategoryUpdateRequest;
 import com.jingdong.mall.model.entity.ProductCategory;
+import com.jingdong.mall.provider.ProductCategorySqlProvider;
 import org.apache.ibatis.annotations.*;
 
 @Mapper
@@ -19,4 +21,14 @@ public interface ProductCategoryMapper {
      */
     @Select("SELECT COUNT(*) FROM product_category WHERE name = #{name} AND is_active = 1")
     int countByName(@Param("name") String name);
+
+    // 新增更新分类相关方法
+    @UpdateProvider(type = ProductCategorySqlProvider.class, method = "updateCategory")
+    int updateCategory(ProductCategoryUpdateRequest request);
+
+    @SelectProvider(type = ProductCategorySqlProvider.class, method = "countNameExcludeId")
+    int countNameExcludeId(@Param("id") Integer id, @Param("name") String name);
+
+    @SelectProvider(type = ProductCategorySqlProvider.class, method = "countById")
+    int countById(@Param("id") Integer id);
 }

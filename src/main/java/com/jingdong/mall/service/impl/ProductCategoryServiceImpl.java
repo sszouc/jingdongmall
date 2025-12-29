@@ -4,7 +4,9 @@ import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.ProductCategoryMapper;
 import com.jingdong.mall.model.dto.request.ProductCategoryAddRequest;
+import com.jingdong.mall.model.dto.request.ProductCategoryUpdateRequest;
 import com.jingdong.mall.model.dto.response.ProductCategoryAddResponse;
+import com.jingdong.mall.model.dto.response.ProductCategoryUpdateResponse;
 import com.jingdong.mall.model.entity.ProductCategory;
 import com.jingdong.mall.service.ProductCategoryService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,5 +56,40 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         ProductCategoryAddResponse response = new ProductCategoryAddResponse();
         response.setId(category.getId());
         return response;
+    }
+
+    // 新增更新分类实现
+    @Override
+    @Transactional
+    public ProductCategoryUpdateResponse updateCategory(ProductCategoryUpdateRequest request) {
+        try {
+            log.info("更新分类：id={}, name={}", request.getId(), request.getName());
+
+            // 1. 检查分类是否存在
+            int existCount = productCategoryMapper.countById(request.getId());
+            if (existCount == 0) {
+                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+            }
+
+            // 2. 检查分类名称是否重复（排除当前分类）
+            int nameCount = productCategoryMapper.countNameExcludeId(request.getId(), request.getName());
+            if (nameCount > 0) {
+                throw new BusinessException(ErrorCode.CATEGORY_NAME_EXIST);
+            }
+
+            // 3. 执行更新操作
+            int updateResult = productCategoryMapper.updateCategory(request);
+            if (updateResult <= 0) {
+                throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED);
+            }
+
+            // 4. 构建响应结果
+            return new ProductCategoryUpdateResponse(request.getId(), request.getName());
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("更新分类异常", e);
+            throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED);
+        }
     }
 }
