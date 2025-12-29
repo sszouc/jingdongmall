@@ -117,12 +117,12 @@ public class FileStorageUtil {
             // 4. 保存文件到Docker volume
             Path targetLocation = targetDir.resolve(uniqueFileName);
             file.transferTo(targetLocation);
-
+            log.info("baseURL: {}", baseUrl);
             log.info("文件保存到Docker volume: {}", targetLocation);
             log.info("文件大小: {} bytes", Files.size(targetLocation));
             // 5. 生成访问URL
             String cleanBaseUrl = baseUrl.endsWith("/") ?
-                    baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+                    baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;log.info("cleanBaseUrl: {}", baseUrl);
             String accessUrl = String.format("%s/%s/%s", cleanBaseUrl, userDir, uniqueFileName);
 
             log.info("生成访问URL: {}", accessUrl);
