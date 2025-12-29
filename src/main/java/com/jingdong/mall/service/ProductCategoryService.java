@@ -5,6 +5,7 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.ProductCategoryMapper;
 import com.jingdong.mall.model.dto.request.ProductCategoryAddRequest;
 import com.jingdong.mall.model.dto.request.ProductCategoryUpdateRequest;
+import com.jingdong.mall.model.dto.response.CategoryTreeResponse;
 import com.jingdong.mall.model.dto.response.ProductCategoryAddResponse;
 import com.jingdong.mall.model.dto.response.ProductCategoryUpdateResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,4 +34,9 @@ public interface ProductCategoryService {
      * @param id 分类ID
      */
     void deleteCategory(Integer id);
+
+    /**
+     * 获取分类树（一级分类列表）
+     */
+    CategoryTreeResponse getCategoryTree();
 }

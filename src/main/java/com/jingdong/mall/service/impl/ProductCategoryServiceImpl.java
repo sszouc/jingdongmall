@@ -5,6 +5,7 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.ProductCategoryMapper;
 import com.jingdong.mall.model.dto.request.ProductCategoryAddRequest;
 import com.jingdong.mall.model.dto.request.ProductCategoryUpdateRequest;
+import com.jingdong.mall.model.dto.response.CategoryTreeResponse;
 import com.jingdong.mall.model.dto.response.ProductCategoryAddResponse;
 import com.jingdong.mall.model.dto.response.ProductCategoryUpdateResponse;
 import com.jingdong.mall.model.entity.ProductCategory;
@@ -13,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -123,5 +127,40 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED, "分类删除系统异常");
         }
+    }
+    @Override
+    public CategoryTreeResponse getCategoryTree() {
+        try {
+            log.info("开始查询分类树（一级分类列表）");
+            // 查询所有启用的一级分类
+            List<ProductCategory> categories = productCategoryMapper.selectAllActiveCategories();
+            if (categories == null || categories.isEmpty()) {
+                log.warn("未查询到有效分类");
+                throw new BusinessException(ErrorCode.CATEGORY_PARAM_ERROR, "暂无分类数据");
+            }
+            // 转换为响应DTO
+            List<CategoryTreeResponse.CategoryItem> itemList = categories.stream()
+                    .map(this::convertToCategoryItem)
+                    .collect(Collectors.toList());
+            log.info("分类树查询成功，共{}个分类", itemList.size());
+            return new CategoryTreeResponse(itemList);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("查询分类树系统异常", e);
+            throw new BusinessException(ErrorCode.CATEGORY_PARAM_ERROR, "分类查询失败");
+        }
+    }
+
+    /**
+     * 转换分类实体为响应项
+     */
+    private CategoryTreeResponse.CategoryItem convertToCategoryItem(ProductCategory category) {
+        CategoryTreeResponse.CategoryItem item = new CategoryTreeResponse.CategoryItem();
+        item.setId(String.valueOf(category.getId())); // 按OpenAPI要求返回字符串类型ID
+        item.setName(category.getName());
+        item.setSubTitle(category.getSubTitle());
+        item.setThemeColor(category.getThemeColor());
+        return item;
     }
 }
