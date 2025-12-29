@@ -2,6 +2,7 @@ package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.CarouselAddRequest;
 import com.jingdong.mall.model.dto.response.CarouselAddResponse;
+import com.jingdong.mall.model.dto.response.CarouselDeleteResponse;
 import com.jingdong.mall.model.dto.response.CarouselResponse;
 
 import java.util.List;
@@ -19,4 +20,9 @@ public interface CarouselService {
      * 新增轮播图（新增方法）
      */
     CarouselAddResponse addCarousel(CarouselAddRequest request);
+
+    /**
+     * 删除轮播图
+     */
+    CarouselDeleteResponse deleteCarousel(Long id);
 }

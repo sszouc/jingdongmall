@@ -17,4 +17,24 @@ public class CarouselSqlProvider {
             ORDER_BY("sortOrder ASC"); // 按排序字段升序排列
         }}.toString();
     }
+    /**
+     * 构建删除轮播图的SQL
+     */
+    public String deleteCarouselById(Long id) {
+        return new SQL() {{
+            DELETE_FROM("carousel");
+            WHERE("id = #{id}");
+        }}.toString();
+    }
+
+    /**
+     * 构建检查轮播图是否存在的SQL
+     */
+    public String existsById(Long id) {
+        return new SQL() {{
+            SELECT("COUNT(*)");
+            FROM("carousel");
+            WHERE("id = #{id}");
+        }}.toString();
+    }
 }

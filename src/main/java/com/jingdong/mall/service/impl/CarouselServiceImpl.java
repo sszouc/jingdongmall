@@ -6,6 +6,7 @@ import com.jingdong.mall.mapper.CarouselAddMapper;
 import com.jingdong.mall.mapper.CarouselMapper;
 import com.jingdong.mall.model.dto.request.CarouselAddRequest;
 import com.jingdong.mall.model.dto.response.CarouselAddResponse;
+import com.jingdong.mall.model.dto.response.CarouselDeleteResponse;
 import com.jingdong.mall.model.dto.response.CarouselResponse;
 import com.jingdong.mall.model.entity.Carousel;
 import com.jingdong.mall.service.CarouselService;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,6 +84,34 @@ public class CarouselServiceImpl implements CarouselService {
         } catch (Exception e) {
             log.error("新增轮播图系统异常", e);
             throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public CarouselDeleteResponse deleteCarousel(Long id) {
+        try {
+            // 检查轮播图是否存在
+            int exists = carouselMapper.existsById(id);
+            if (exists <= 0) {
+                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+            }
+
+            // 执行删除
+            int result = carouselMapper.deleteCarouselById(id);
+            if (result <= 0) {
+                throw new BusinessException(ErrorCode.PHOTO_UPDATE_FAILED, "轮播图删除失败");
+            }
+
+            // 构建响应
+            String deleteTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            log.info("轮播图删除成功，ID: {}", id);
+            return new CarouselDeleteResponse(id, deleteTime);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("轮播图删除异常，ID: {}", id, e);
+            throw new BusinessException(ErrorCode.PHOTO_UPDATE_FAILED, "轮播图删除异常");
         }
     }
     /**

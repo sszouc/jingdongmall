@@ -6,6 +6,7 @@ import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.CarouselAddRequest;
 import com.jingdong.mall.model.dto.response.CarouselAddResponse;
+import com.jingdong.mall.model.dto.response.CarouselDeleteResponse;
 import com.jingdong.mall.model.dto.response.CarouselResponse;
 import com.jingdong.mall.service.CarouselService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -64,6 +66,28 @@ public class CarouselController {
         return Result.success("轮播图新增成功", response);
     }
 
+    @Operation(
+            summary = "删除轮播图",
+            description = "删除指定ID的轮播图，仅管理员可操作",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            tags = {"管理员/轮播图"}
+    )
+    @DeleteMapping("/{id}")
+    public Result<CarouselDeleteResponse> deleteCarousel(
+            @Parameter(description = "JWT认证令牌", required = true, example = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...")
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "轮播图ID", required = true, example = "1")
+            @PathVariable @NotNull(message = "轮播图ID不能为空") Long id) {
+        // 验证管理员权限
+        String token = extractTokenFromHeader(authHeader);
+        Integer userRole = jwtUtil.getUserRoleFromToken(token);
+        if (userRole == null || (userRole != 1 && userRole != 2)) {
+            throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
+        }
+
+        CarouselDeleteResponse response = carouselService.deleteCarousel(id);
+        return Result.success("轮播图删除成功", response);
+    }
     // 新增Token提取工具方法
     private String extractTokenFromHeader(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
