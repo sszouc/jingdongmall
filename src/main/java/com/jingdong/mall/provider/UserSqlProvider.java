@@ -30,6 +30,9 @@ public class UserSqlProvider {
                 WHERE("status = #{request.status}");
             }
 
+            // 只查询普通用户（role = 0）
+            WHERE("role = 0");
+
             ORDER_BY("id ASC");
         }}.toString();
     }
@@ -53,6 +56,9 @@ public class UserSqlProvider {
             if (request.getStatus() != null) {
                 WHERE("status = #{request.status}");
             }
+
+            WHERE("role = 0");
+
         }}.toString();
     }
 
