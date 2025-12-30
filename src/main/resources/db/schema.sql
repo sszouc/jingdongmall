@@ -68,6 +68,8 @@ CREATE TABLE product_category
     level        TINYINT      NOT NULL DEFAULT 1 COMMENT '分类层级：1一级，2二级',
     sort_order   INT          NOT NULL DEFAULT 0 COMMENT '排序序号，数字越小越靠前',
     is_active    TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
+    sub_title    VARCHAR(100) NULL DEFAULT NULL COMMENT '分类的详细信息',
+    theme_colour VARCHAR(100) NULL DEFAULT NULL COMMENT '颜色',
     created_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
@@ -265,11 +267,11 @@ CREATE TABLE order_item
 CREATE TABLE carousel
 (
     id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '轮播图ID',
-    image_url  VARCHAR(500) NOT NULL COMMENT '图片URL',
+    img_url  VARCHAR(500) NOT NULL COMMENT '图片URL',
     link_url   VARCHAR(500) COMMENT '点击跳转链接',
     sort_order INT                   DEFAULT 0 COMMENT '排序序号，数字越小越靠前',
     is_active  TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
-    created_at DATETIME              DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_time DATETIME              DEFAULT CURRENT_TIMESTAMP,
+    updated_time DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_sort (sort_order)
 ) COMMENT ='轮播图表';

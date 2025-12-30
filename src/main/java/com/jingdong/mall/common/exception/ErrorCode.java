@@ -113,11 +113,21 @@ public enum ErrorCode {
     ADMIN_DELETE_FAILED(8012, "删除管理员失败"), // 新增
     LAST_ADMIN_CANNOT_BE_DELETED(8013, "至少需要保留一个管理员"),
 
-    // 商品分类相关 (2014-2019)
-    CATEGORY_NAME_EXIST(2014, "分类名称已存在"),
-    CATEGORY_CREATE_FAILED(2015, "创建分类失败"),
-    CATEGORY_PARAM_ERROR(2016, "分类参数不合法");
+    // 商品分类以及轮播图相关 (9014-9019)
+    CAROUSEL_GET_FAILED(9000,"获取轮播图失败"),
+    CAROUSEL_GRATE_FAILED(9001,"新增轮播图失败"),
+    CAROUSEL_UPDATE_FAILED(9002,"更新轮播图失败"),
+    CAROUSEL_DELETE_FAILED(9003,"删除轮播图失败"),
+    CAROUSEL_NOT_EXIST(9004,"轮播图不存在"),
+    CATEGORY_NAME_EXIST(9010, "分类名称已存在"),
+    CATEGORY_CREATE_FAILED(9011, "创建分类失败"),
+    CATEGORY_PARAM_ERROR(9012, "分类参数不合法"),
+    CATEGORY_UPDATE_FAILED(901, "更新分类失败"),
+    CATEGORY_DELETE_FAILED(9014, "删除分类失败"),
+    CATEGORY_NOT_EXIST(9015,"分类不存在"),
+    CATEGORY_GET_EXIST(9016,"分类查询失败"),
     ;
+
 
 
     private final Integer code;

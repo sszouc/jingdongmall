@@ -15,8 +15,7 @@ public class ProductCategoryTreeProvider {
             SELECT("id, name, sub_title, theme_color");
             FROM("product_category");
             WHERE("is_active = 1");
-            WHERE("parent_id = 0"); // 只查一级分类，符合前端平行展示需求
-            ORDER_BY("sort_order ASC, created_time DESC");
+            ORDER_BY("created_time ASC");
         }}.toString();
     }
 }

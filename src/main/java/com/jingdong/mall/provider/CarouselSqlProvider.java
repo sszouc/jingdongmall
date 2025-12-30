@@ -11,10 +11,10 @@ public class CarouselSqlProvider {
      */
     public String selectActiveCarousels() {
         return new SQL() {{
-            SELECT("id, imgUrl, linkUrl, sortOrder, isActive");
+            SELECT("id, img_url, link_url, sort_order, is_active");
             FROM("carousel");
-            WHERE("isActive = 1"); // 只查询启用状态的轮播图
-            ORDER_BY("sortOrder ASC"); // 按排序字段升序排列
+            WHERE("is_active = 1"); // 只查询启用状态的轮播图
+            ORDER_BY("sort_order ASC"); // 按排序字段升序排列
         }}.toString();
     }
     /**

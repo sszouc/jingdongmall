@@ -39,15 +39,16 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             throw new BusinessException(ErrorCode.CATEGORY_NAME_EXIST);
         }
 
-        // 3. 构建分类实体（默认父级ID=0，层级=1，排序=0，状态=启用）
+        // 3. 构建分类实体（默认父级ID=24，层级=2，排序=0，状态=启用）
         ProductCategory category = new ProductCategory();
         category.setName(request.getName());
         category.setSubTitle(request.getSubTitle());
         category.setThemeColor(request.getThemeColor());
-        category.setParentId(0); // 一级分类
-        category.setLevel(1);
+        category.setParentId(24); // 一级分类
+        category.setLevel(2);
         category.setSortOrder(0);
         category.setIsActive(1); // 启用状态
+
 
         // 4. 保存到数据库
         int result = productCategoryMapper.insert(category);
@@ -72,7 +73,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             // 1. 检查分类是否存在
             int existCount = productCategoryMapper.countById(request.getId());
             if (existCount == 0) {
-                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+                throw new BusinessException(ErrorCode.CATEGORY_NOT_EXIST);
             }
 
             // 2. 检查分类名称是否重复（排除当前分类）
@@ -84,7 +85,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             // 3. 执行更新操作
             int updateResult = productCategoryMapper.updateCategory(request);
             if (updateResult <= 0) {
-                throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED);
+                throw new BusinessException(ErrorCode.CATEGORY_UPDATE_FAILED);
             }
 
             // 4. 构建响应结果
@@ -93,7 +94,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             throw e;
         } catch (Exception e) {
             log.error("更新分类异常", e);
-            throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED);
+            throw new BusinessException(ErrorCode.CATEGORY_UPDATE_FAILED);
         }
     }
     @Override
@@ -102,41 +103,41 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         try {
             // 1. 验证分类是否存在（复用已有方法）
             if (productCategoryMapper.countById(id) == 0) {
-                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+                throw new BusinessException(ErrorCode.CATEGORY_NOT_EXIST);
             }
 
             // 2. 检查是否有关联子分类
             int subCategoryCount = productCategoryMapper.countSubCategories(id);
             if (subCategoryCount > 0) {
-                throw new BusinessException(ErrorCode.CATEGORY_PARAM_ERROR, "该分类下存在子分类，无法删除");
+                throw new BusinessException(ErrorCode.CATEGORY_DELETE_FAILED, "该分类下存在子分类，无法删除");
             }
 
             // 3. 检查是否有关联商品
             int productCount = productCategoryMapper.countProductsByCategory(id);
             if (productCount > 0) {
-                throw new BusinessException(ErrorCode.CATEGORY_PARAM_ERROR, "该分类下存在商品，无法删除");
+                throw new BusinessException(ErrorCode.CATEGORY_DELETE_FAILED, "该分类下存在商品，无法删除");
             }
 
             // 4. 执行逻辑删除
             int result = productCategoryMapper.deleteCategory(id);
             if (result <= 0) {
-                throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED, "分类删除失败");
+                throw new BusinessException(ErrorCode.CATEGORY_DELETE_FAILED);
             }
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw new BusinessException(ErrorCode.CATEGORY_CREATE_FAILED, "分类删除系统异常");
+            throw new BusinessException(ErrorCode.CATEGORY_DELETE_FAILED);
         }
     }
     @Override
     public CategoryTreeResponse getCategoryTree() {
         try {
-            log.info("开始查询分类树（一级分类列表）");
+            log.info("开始查询分类树");
             // 查询所有启用的一级分类
             List<ProductCategory> categories = productCategoryMapper.selectAllActiveCategories();
             if (categories == null || categories.isEmpty()) {
                 log.warn("未查询到有效分类");
-                throw new BusinessException(ErrorCode.CATEGORY_PARAM_ERROR, "暂无分类数据");
+                throw new BusinessException("暂无分类数据");
             }
             // 转换为响应DTO
             List<CategoryTreeResponse.CategoryItem> itemList = categories.stream()
@@ -148,7 +149,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             throw e;
         } catch (Exception e) {
             log.error("查询分类树系统异常", e);
-            throw new BusinessException(ErrorCode.CATEGORY_PARAM_ERROR, "分类查询失败");
+            throw new BusinessException(ErrorCode.CATEGORY_GET_EXIST);
         }
     }
 

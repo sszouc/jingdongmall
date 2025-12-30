@@ -26,7 +26,7 @@ public class AdminCategoryController {
 
     @Operation(
             summary = "新增分类",
-            description = "创建新的商品分类，parentId默认0（一级分类），自动启用"
+            description = "创建新的商品分类，parentId默认24（二级分类），自动启用"
     )
     @PostMapping
     public Result<ProductCategoryAddResponse> addCategory(
@@ -42,14 +42,10 @@ public class AdminCategoryController {
             summary = "更新分类",
             description = "更新商品分类信息，需检测分类名称不重复"
     )
-    @PatchMapping("/{id}")
+    @PostMapping("/update")
     public Result<ProductCategoryUpdateResponse> updateCategory(
-            @Parameter(description = "分类ID", required = true, example = "1")
-            @PathVariable Integer id,
             @Parameter(description = "更新分类请求参数", required = true)
             @Valid @RequestBody ProductCategoryUpdateRequest request) {
-        // 确保路径ID与请求体ID一致
-        request.setId(id);
         ProductCategoryUpdateResponse response = productCategoryService.updateCategory(request);
         return Result.success("分类更新成功", response);
     }

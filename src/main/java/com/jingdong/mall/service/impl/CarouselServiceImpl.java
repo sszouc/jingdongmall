@@ -2,7 +2,6 @@ package com.jingdong.mall.service.impl;
 
 import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
-import com.jingdong.mall.mapper.CarouselAddMapper;
 import com.jingdong.mall.mapper.CarouselMapper;
 import com.jingdong.mall.model.dto.request.CarouselAddRequest;
 import com.jingdong.mall.model.dto.response.CarouselAddResponse;
@@ -26,7 +25,6 @@ public class CarouselServiceImpl implements CarouselService {
 
     @Autowired
     private CarouselMapper carouselMapper;
-    private CarouselAddMapper carouselAddMapper;
 
     @Override
     public List<CarouselResponse> getActiveCarousels() {
@@ -44,7 +42,7 @@ public class CarouselServiceImpl implements CarouselService {
             return responseList;
         } catch (Exception e) {
             log.error("查询轮播图失败", e);
-            throw new BusinessException(ErrorCode.PRODUCT_DETAIL_ERROR, "获取轮播图失败");
+            throw new BusinessException(ErrorCode.CAROUSEL_GET_FAILED);
         }
     }
 
@@ -63,9 +61,9 @@ public class CarouselServiceImpl implements CarouselService {
             carousel.setIsActive(request.getIsActive() != null ? request.getIsActive() : 1);
 
             // 执行新增
-            int result = carouselAddMapper.insertCarousel(carousel);
+            int result = carouselMapper.insertCarousel(carousel);
             if (result <= 0) {
-                throw new BusinessException(ErrorCode.PHOTO_UPDATE_FAILED);
+                throw new BusinessException(ErrorCode.CAROUSEL_GRATE_FAILED);
             }
 
             // 构建响应
@@ -83,7 +81,7 @@ public class CarouselServiceImpl implements CarouselService {
             throw e;
         } catch (Exception e) {
             log.error("新增轮播图系统异常", e);
-            throw new BusinessException(ErrorCode.ADMIN_OPERATION_FAILED);
+            throw new BusinessException(ErrorCode.CAROUSEL_GRATE_FAILED);
         }
     }
 
@@ -94,13 +92,13 @@ public class CarouselServiceImpl implements CarouselService {
             // 检查轮播图是否存在
             int exists = carouselMapper.existsById(id);
             if (exists <= 0) {
-                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+                throw new BusinessException(ErrorCode.CAROUSEL_NOT_EXIST);
             }
 
             // 执行删除
             int result = carouselMapper.deleteCarouselById(id);
             if (result <= 0) {
-                throw new BusinessException(ErrorCode.PHOTO_UPDATE_FAILED, "轮播图删除失败");
+                throw new BusinessException(ErrorCode.CAROUSEL_DELETE_FAILED);
             }
 
             // 构建响应
@@ -111,7 +109,7 @@ public class CarouselServiceImpl implements CarouselService {
             throw e;
         } catch (Exception e) {
             log.error("轮播图删除异常，ID: {}", id, e);
-            throw new BusinessException(ErrorCode.PHOTO_UPDATE_FAILED, "轮播图删除异常");
+            throw new BusinessException(ErrorCode.CAROUSEL_DELETE_FAILED);
         }
     }
     /**
