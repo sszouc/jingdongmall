@@ -1,4 +1,4 @@
-package com.jingdong.mall.controller.api;
+package com.jingdong.mall.controller.admin;
 
 import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;

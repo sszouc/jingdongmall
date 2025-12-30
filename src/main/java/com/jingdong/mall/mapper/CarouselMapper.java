@@ -1,7 +1,6 @@
 package com.jingdong.mall.mapper;
 
 import com.jingdong.mall.model.entity.Carousel;
-import com.jingdong.mall.provider.CarouselAddSqlProvider;
 import com.jingdong.mall.provider.CarouselSqlProvider;
 import org.apache.ibatis.annotations.*;
 
@@ -26,7 +25,7 @@ public interface CarouselMapper {
     @SelectProvider(type = CarouselSqlProvider.class, method = "existsById")
     int existsById(Long id);
 
-    @InsertProvider(type = CarouselAddSqlProvider.class, method = "insertCarousel")
+    @InsertProvider(type = CarouselSqlProvider.class, method = "insertCarousel")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insertCarousel(Carousel carousel);
 }

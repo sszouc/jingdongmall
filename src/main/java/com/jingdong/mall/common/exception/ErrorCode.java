@@ -35,6 +35,7 @@ public enum ErrorCode {
     INFO_GET_FAIL(1017,"获取用户信息失败"),
     LOGOUT_FAILED(1018,"退出登录失败"),
     DATE_FORMAT_ERROR(1019, "日期格式不正确，请使用yyyy-MM-dd格式"),
+    INVALID_OPERATION(1020,"无效的操作类型"),
 
     // 商品相关 (2000-2999)
     PRODUCT_NOT_EXIST(2001, "商品不存在"),
@@ -112,6 +113,8 @@ public enum ErrorCode {
     ADMIN_GENERATE_USERNAME_FAILED(8011, "生成用户名失败"),
     ADMIN_DELETE_FAILED(8012, "删除管理员失败"), // 新增
     LAST_ADMIN_CANNOT_BE_DELETED(8013, "至少需要保留一个管理员"),
+    SHIPPING_FAILED(8014,"发货失败"),
+    REFUND_FAILED(8015,"退款失败"),
 
     // 商品分类以及轮播图相关 (9014-9019)
     CAROUSEL_GET_FAILED(9000,"获取轮播图失败"),

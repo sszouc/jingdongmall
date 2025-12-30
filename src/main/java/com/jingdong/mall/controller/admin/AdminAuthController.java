@@ -1,4 +1,4 @@
-package com.jingdong.mall.controller.api;
+package com.jingdong.mall.controller.admin;
 
 import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.model.dto.request.AdminLoginRequest;
