@@ -130,6 +130,15 @@ public enum ErrorCode {
     CATEGORY_DELETE_FAILED(9014, "删除分类失败"),
     CATEGORY_NOT_EXIST(9015,"分类不存在"),
     CATEGORY_GET_EXIST(9016,"分类查询失败"),
+
+    // 优惠券相关 (9020-9029)
+    COUPON_LIST_GET_FAILED(9020, "优惠券列表获取失败"),
+    COUPON_CREATE_FAILED(9021, "创建优惠券失败"),
+    COUPON_UPDATE_FAILED(9022, "更新优惠券失败"),
+    COUPON_DELETE_FAILED(9023, "删除优惠券失败"),
+    COUPON_NAME_DUPLICATE(9024, "优惠券名称已存在"),
+    COUPON_INVALID_PARAM(9025, "优惠券参数不合法"),
+    COUPON_DB_ERROR(9026, "优惠券数据库错误"),
     ;
 
 
