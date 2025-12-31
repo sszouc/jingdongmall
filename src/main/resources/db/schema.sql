@@ -68,8 +68,8 @@ CREATE TABLE product_category
     level        TINYINT      NOT NULL DEFAULT 1 COMMENT '分类层级：1一级，2二级',
     sort_order   INT          NOT NULL DEFAULT 0 COMMENT '排序序号，数字越小越靠前',
     is_active    TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
-    sub_title    VARCHAR(100) NULL DEFAULT NULL COMMENT '分类的详细信息',
-    theme_colour VARCHAR(100) NULL DEFAULT NULL COMMENT '颜色',
+    sub_title    VARCHAR(100) NULL     DEFAULT NULL COMMENT '分类的详细信息',
+    theme_colour VARCHAR(100) NULL     DEFAULT NULL COMMENT '颜色',
     created_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
@@ -266,12 +266,31 @@ CREATE TABLE order_item
 -- 10.轮播图数据库
 CREATE TABLE carousel
 (
-    id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '轮播图ID',
-    img_url  VARCHAR(500) NOT NULL COMMENT '图片URL',
-    link_url   VARCHAR(500) COMMENT '点击跳转链接',
-    sort_order INT                   DEFAULT 0 COMMENT '排序序号，数字越小越靠前',
-    is_active  TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
+    id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '轮播图ID',
+    img_url      VARCHAR(500) NOT NULL COMMENT '图片URL',
+    link_url     VARCHAR(500) COMMENT '点击跳转链接',
+    sort_order   INT                   DEFAULT 0 COMMENT '排序序号，数字越小越靠前',
+    is_active    TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
     created_time DATETIME              DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_sort (sort_order)
 ) COMMENT ='轮播图表';
+
+-- 11.优惠券表
+CREATE TABLE coupon
+(
+    id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '优惠券主键ID',
+    name         VARCHAR(100)    NOT NULL COMMENT '优惠券名称',
+    type         TINYINT         NOT NULL CHECK (type IN (1, 2)) COMMENT '类型：1-满减券，2-折扣券',
+    value        DECIMAL(10, 2)  NOT NULL COMMENT '优惠值：满减金额或折扣（如9.5表示95折）',
+    min_spend    DECIMAL(10, 2)  NOT NULL DEFAULT 0.00 COMMENT '使用门槛，0表示无门槛',
+    start_time   DATETIME        NOT NULL COMMENT '开始时间',
+    end_time     DATETIME        NOT NULL COMMENT '结束时间',
+    total_count  INT             NOT NULL DEFAULT 0 COMMENT '发放总量',
+    used_count   INT             NOT NULL DEFAULT 0 COMMENT '已使用数量',
+    status       TINYINT         NOT NULL DEFAULT 1 CHECK (status IN (0, 1)) COMMENT '状态：1启用，0禁用',
+    created_time DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '优惠券表';

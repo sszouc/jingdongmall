@@ -115,6 +115,7 @@ public enum ErrorCode {
     LAST_ADMIN_CANNOT_BE_DELETED(8013, "至少需要保留一个管理员"),
     SHIPPING_FAILED(8014,"发货失败"),
     REFUND_FAILED(8015,"退款失败"),
+    REFUND_REJECT_FAILED(8016,"拒绝退款失败"),
 
     // 商品分类以及轮播图相关 (9014-9019)
     CAROUSEL_GET_FAILED(9000,"获取轮播图失败"),
