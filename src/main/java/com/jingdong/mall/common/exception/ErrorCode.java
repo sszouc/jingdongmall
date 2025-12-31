@@ -71,6 +71,14 @@ public enum ErrorCode {
     ORDER_CANNOT_PAY(3015, "订单不能支付"),
     ORDER_LIST_GET_FAILED(3016,"订单列表获取失败"),
     ORDER_NOT_USER(3017,"该订单不属于你"),
+    NOTICE_NOT_EXIST(3018, "公告不存在"),
+    NOTICE_TITLE_EMPTY(3019, "公告标题不能为空"),
+    NOTICE_CONTENT_EMPTY(3020, "公告内容不能为空"),
+    NOTICE_STATUS_INVALID(3021, "公告状态无效"),
+    NOTICE_CREATE_FAILED(3022,"公告创建失败"),
+    NOTICE_UPDATE_FAILED(3023,"公告更新失败"),
+    NOTICE_DELETE_FAILED(3024,"公告删除失败"),
+    NOTICE_QUERY_FAILED(3025,"公告查询失败"),
 
 
     // 新增地址相关错误码（地址管理：4000-4999）

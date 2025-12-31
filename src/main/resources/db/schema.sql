@@ -294,3 +294,23 @@ CREATE TABLE coupon
     PRIMARY KEY (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT = '优惠券表';
+
+-- 12.公告表
+CREATE TABLE notice
+(
+    id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '公告主键ID',
+    title        VARCHAR(200)    NOT NULL COMMENT '公告标题',
+    content      TEXT            NOT NULL COMMENT '公告内容',
+    type         INT             NOT NULL DEFAULT 1 COMMENT '公告类型：1-系统公告，2-活动公告，3-物流公告，4-其他',
+    is_active    TINYINT         NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)) COMMENT '状态：1启用，0禁用',
+    created_time DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_time DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    sort_order   INT             NOT NULL DEFAULT 0 COMMENT '排序序号，数字越小越靠前',
+    PRIMARY KEY (id),
+    INDEX idx_title (title(50)) COMMENT '标题索引',
+    INDEX idx_type (type),
+    INDEX idx_is_active (is_active),
+    INDEX idx_created_time (created_time),
+    FULLTEXT INDEX idx_title_fulltext (title) COMMENT '标题全文索引'
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT = '商城公告表';
