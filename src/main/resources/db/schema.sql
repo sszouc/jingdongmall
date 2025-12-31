@@ -280,7 +280,7 @@ CREATE TABLE carousel
 CREATE TABLE coupon
 (
     id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '优惠券主键ID',
-    name         VARCHAR(100)    NOT NULL COMMENT '优惠券名称',
+    name         VARCHAR(100)    NOT NULL UNIQUE COMMENT '优惠券名称',
     type         TINYINT         NOT NULL CHECK (type IN (1, 2)) COMMENT '类型：1-满减券，2-折扣券',
     value        DECIMAL(10, 2)  NOT NULL COMMENT '优惠值：满减金额或折扣（如9.5表示95折）',
     min_spend    DECIMAL(10, 2)  NOT NULL DEFAULT 0.00 COMMENT '使用门槛，0表示无门槛',

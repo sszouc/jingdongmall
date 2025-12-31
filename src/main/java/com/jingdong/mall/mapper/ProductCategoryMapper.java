@@ -42,11 +42,11 @@ public interface ProductCategoryMapper {
     @SelectProvider(type = ProductCategoryDeleteProvider.class, method = "countSubCategories")
     int countSubCategories(@Param("id") Integer id);
 
-    /**
-     * 统计分类下商品集合
-     */
-    @SelectProvider(type = ProductCategoryDeleteProvider.class, method = "countProductsByCategory")
-    List<Integer> countProductsByCategory(@Param("id") Integer id);
+//    /**
+//     * 统计分类下商品集合
+//     */
+//    @SelectProvider(type = ProductCategoryDeleteProvider.class, method = "countProductsByCategory")
+//    List<Integer> countProductsByCategory(@Param("id") Integer id);
 
     /**
      * 直接删除分类
