@@ -12,6 +12,7 @@ import com.jingdong.mall.model.dto.response.CouponCreateResponse;
 import com.jingdong.mall.model.entity.Coupon;
 import com.jingdong.mall.service.CouponService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -37,12 +38,16 @@ public class CouponServiceImpl implements CouponService {
      */
     @Override
     public CouponListResponse getCouponList(Long currentUserId, Integer currentUserRole, CouponListRequest request) {
-        // 仅管理员可用（role=1或2）
+        // 管理员权限
         if (currentUserRole == null || (currentUserRole != 1 && currentUserRole != 2)) {
             throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
         }
 
-        // 传入的请求对象已经由Controller层做了基本的校验（@Valid），Service层不再重复校验字段格式
+        // 参数校验（防止无效分页参数）
+        if (request.getPage() == null || request.getPage() <= 0 || request.getPageSize() == null || request.getPageSize() <= 0) {
+            throw new BusinessException(ErrorCode.COUPON_INVALID_PARAM, "分页参数不合法");
+        }
+
         try {
             List<CouponListItemResponse> list = couponMapper.selectCouponList(request);
             Integer total = couponMapper.countCouponList(request);
@@ -57,9 +62,12 @@ public class CouponServiceImpl implements CouponService {
 
         } catch (BusinessException e) {
             throw e;
+        } catch (DataAccessException dae) {
+            // 数据库相关错误
+            throw new BusinessException(ErrorCode.COUPON_DB_ERROR, "查询优惠券列表数据库错误");
         } catch (Exception ex) {
-            // 业务异常包装
-            throw new BusinessException(ErrorCode.COUPON_LIST_GET_FAILED, "查询优惠券列表失败: " + ex.getMessage());
+            // 其他未知错误
+            throw new BusinessException(ErrorCode.COUPON_LIST_GET_FAILED, "查询优惠券列表失败");
         }
     }
 
@@ -73,20 +81,25 @@ public class CouponServiceImpl implements CouponService {
      */
     @Override
     public CouponCreateResponse createCoupon(Long currentUserId, Integer currentUserRole, CouponCreateRequest request) {
-        // 仅管理员可用（role=1或2）
         if (currentUserRole == null || (currentUserRole != 1 && currentUserRole != 2)) {
             throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
         }
 
-        // 传入的请求对象已经由Controller层做了基本的校验（@Valid）
         try {
+            // 名称重复检查
+            if (request.getName() != null && !request.getName().trim().isEmpty()) {
+                int exist = couponMapper.countByName(request.getName().trim());
+                if (exist > 0) {
+                    throw new BusinessException(ErrorCode.COUPON_NAME_DUPLICATE);
+                }
+            }
+
             // DTO -> entity
             Coupon coupon = new Coupon();
             coupon.setName(request.getName());
             coupon.setType(request.getType());
             coupon.setValue(request.getValue());
             coupon.setMinSpend(request.getMinSpend());
-            // 解析时间字符串为 LocalDateTime
             try {
                 coupon.setStartTime(LocalDateTime.parse(request.getStartTime(), DATE_TIME_FORMATTER));
                 coupon.setEndTime(LocalDateTime.parse(request.getEndTime(), DATE_TIME_FORMATTER));
@@ -97,9 +110,15 @@ public class CouponServiceImpl implements CouponService {
             coupon.setUsedCount(0);
             coupon.setStatus(request.getStatus() == null ? 1 : request.getStatus());
 
-            int rows = couponMapper.insertCoupon(coupon);
-            if (rows <= 0) {
-                throw new BusinessException(ErrorCode.COUPON_CREATE_FAILED, "插入优惠券记录失败");
+            try {
+                int rows = couponMapper.insertCoupon(coupon);
+                if (rows <= 0) {
+                    throw new BusinessException(ErrorCode.COUPON_CREATE_FAILED, "插入优惠券记录失败");
+                }
+            } catch (DuplicateKeyException dke) {
+                throw new BusinessException(ErrorCode.COUPON_NAME_DUPLICATE);
+            } catch (DataAccessException dae) {
+                throw new BusinessException(ErrorCode.COUPON_DB_ERROR, "插入优惠券数据库错误");
             }
 
             CouponCreateResponse response = new CouponCreateResponse();
@@ -109,7 +128,7 @@ public class CouponServiceImpl implements CouponService {
         } catch (BusinessException e) {
             throw e;
         } catch (Exception ex) {
-            throw new BusinessException(ErrorCode.COUPON_CREATE_FAILED, "创建优惠券失败: " + ex.getMessage());
+            throw new BusinessException(ErrorCode.COUPON_CREATE_FAILED, "创建优惠券失败");
         }
     }
 
@@ -123,18 +142,15 @@ public class CouponServiceImpl implements CouponService {
      */
     @Override
     public void updateCoupon(Long currentUserId, Integer currentUserRole, Long id, CouponUpdateRequest request) {
-        // 仅管理员可用（role=1或2）
         if (currentUserRole == null || (currentUserRole != 1 && currentUserRole != 2)) {
             throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
         }
 
-        // 校验ID
         if (id == null || id <= 0) {
             throw new BusinessException(ErrorCode.COUPON_UPDATE_FAILED, "优惠券ID无效");
         }
 
         try {
-            // 如果包含日期字符串，验证格式
             if (request.getStartTime() != null) {
                 try {
                     LocalDateTime.parse(request.getStartTime(), DATE_TIME_FORMATTER);
@@ -150,7 +166,6 @@ public class CouponServiceImpl implements CouponService {
                 }
             }
 
-            // 检查名称重复（如果提供了 name）
             if (request.getName() != null && !request.getName().trim().isEmpty()) {
                 int exist = couponMapper.countByNameExcludeId(request.getName().trim(), id);
                 if (exist > 0) {
@@ -165,14 +180,15 @@ public class CouponServiceImpl implements CouponService {
                 }
 
             } catch (DuplicateKeyException dke) {
-                // 数据库唯一键冲突，转换为更友好的业务错误
                 throw new BusinessException(ErrorCode.COUPON_NAME_DUPLICATE);
+            } catch (DataAccessException dae) {
+                throw new BusinessException(ErrorCode.COUPON_DB_ERROR, "更新优惠券数据库错误");
             }
 
         } catch (BusinessException e) {
             throw e;
         } catch (Exception ex) {
-            throw new BusinessException(ErrorCode.COUPON_UPDATE_FAILED, "更新优惠券失败: " + ex.getMessage());
+            throw new BusinessException(ErrorCode.COUPON_UPDATE_FAILED, "更新优惠券失败");
         }
     }
 
@@ -185,25 +201,27 @@ public class CouponServiceImpl implements CouponService {
      */
     @Override
     public void deleteCoupon(Long currentUserId, Integer currentUserRole, Long id) {
-        // 仅管理员可用（role=1或2）
         if (currentUserRole == null || (currentUserRole != 1 && currentUserRole != 2)) {
             throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
         }
 
-        // 校验ID
         if (id == null || id <= 0) {
             throw new BusinessException(ErrorCode.COUPON_DELETE_FAILED, "优惠券ID无效");
         }
 
         try {
-            int rows = couponMapper.deleteCoupon(id);
-            if (rows <= 0) {
-                throw new BusinessException(ErrorCode.COUPON_DELETE_FAILED, "删除优惠券失败或优惠券不存在");
+            try {
+                int rows = couponMapper.deleteCoupon(id);
+                if (rows <= 0) {
+                    throw new BusinessException(ErrorCode.COUPON_DELETE_FAILED, "删除优惠券失败或优惠券不存在");
+                }
+            } catch (DataAccessException dae) {
+                throw new BusinessException(ErrorCode.COUPON_DB_ERROR, "删除优惠券数据库错误");
             }
         } catch (BusinessException e) {
             throw e;
         } catch (Exception ex) {
-            throw new BusinessException(ErrorCode.COUPON_DELETE_FAILED, "删除优惠券失败: " + ex.getMessage());
+            throw new BusinessException(ErrorCode.COUPON_DELETE_FAILED, "删除优惠券失败");
         }
     }
 }

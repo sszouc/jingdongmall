@@ -137,6 +137,8 @@ public enum ErrorCode {
     COUPON_UPDATE_FAILED(9022, "更新优惠券失败"),
     COUPON_DELETE_FAILED(9023, "删除优惠券失败"),
     COUPON_NAME_DUPLICATE(9024, "优惠券名称已存在"),
+    COUPON_INVALID_PARAM(9025, "优惠券参数不合法"),
+    COUPON_DB_ERROR(9026, "优惠券数据库错误"),
     ;
 
 

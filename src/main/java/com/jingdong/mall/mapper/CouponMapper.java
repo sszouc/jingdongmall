@@ -59,4 +59,10 @@ public interface CouponMapper {
      */
     @Select("SELECT COUNT(*) FROM coupon WHERE name = #{name} AND id != #{excludeId}")
     int countByNameExcludeId(@Param("name") String name, @Param("excludeId") Long excludeId);
+
+    /**
+     * 检查某名称优惠券是否存在（用于创建时检查重复）
+     */
+    @Select("SELECT COUNT(*) FROM coupon WHERE name = #{name}")
+    int countByName(@Param("name") String name);
 }
