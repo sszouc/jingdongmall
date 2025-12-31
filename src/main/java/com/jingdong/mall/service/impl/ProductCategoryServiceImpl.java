@@ -44,7 +44,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         category.setName(request.getName());
         category.setSubTitle(request.getSubTitle());
         category.setThemeColor(request.getThemeColor());
-        category.setParentId(24); // 一级分类
+        category.setParentId(0);
         category.setLevel(2);
         category.setSortOrder(0);
         category.setIsActive(1); // 启用状态
@@ -101,6 +101,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteCategory(Integer id) {
         try {
+
             // 1. 验证分类是否存在（复用已有方法）
             if (productCategoryMapper.countById(id) == 0) {
                 throw new BusinessException(ErrorCode.CATEGORY_NOT_EXIST);
@@ -111,14 +112,18 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             if (subCategoryCount > 0) {
                 throw new BusinessException(ErrorCode.CATEGORY_DELETE_FAILED, "该分类下存在子分类，无法删除");
             }
-
             // 3. 检查是否有关联商品
-            int productCount = productCategoryMapper.countProductsByCategory(id);
-            if (productCount > 0) {
-                throw new BusinessException(ErrorCode.CATEGORY_DELETE_FAILED, "该分类下存在商品，无法删除");
+            List<Integer> productIds = productCategoryMapper.countProductsByCategory(id);
+            if (productIds != null && !productIds.isEmpty()) {
+                // 如果有需要，可以将ID列表转换为字符串用于错误信息
+                String idsStr = productIds.stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(","));
+                throw new BusinessException(ErrorCode.CATEGORY_DELETE_FAILED,
+                        String.format("该分类下存在商品（ID: %s），无法删除", idsStr));
             }
 
-            // 4. 执行逻辑删除
+            // 4. 执行直接删除
             int result = productCategoryMapper.deleteCategory(id);
             if (result <= 0) {
                 throw new BusinessException(ErrorCode.CATEGORY_DELETE_FAILED);

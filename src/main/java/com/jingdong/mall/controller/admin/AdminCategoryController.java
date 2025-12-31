@@ -26,7 +26,7 @@ public class AdminCategoryController {
 
     @Operation(
             summary = "新增分类",
-            description = "创建新的商品分类，parentId默认24（二级分类），自动启用"
+            description = "创建新的商品分类，parentId默认0（根节点），自动启用"
     )
     @PostMapping
     public Result<ProductCategoryAddResponse> addCategory(

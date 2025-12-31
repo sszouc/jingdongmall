@@ -24,7 +24,7 @@ public class ProductCategoryDeleteProvider {
      */
     public String countProductsByCategory(Integer id) {
         SQL sql = new SQL();
-        sql.SELECT("COUNT(*)");
+        sql.SELECT("id"); // 修改：只查询商品ID
         sql.FROM("product");
         sql.WHERE("category_id = #{id}");
         sql.WHERE("is_active = 1");
@@ -32,15 +32,13 @@ public class ProductCategoryDeleteProvider {
     }
 
     /**
-     * 逻辑删除分类（更新is_active为0）
+     * 直接删除分类
      */
     public String deleteCategory(Integer id) {
         SQL sql = new SQL();
-        sql.UPDATE("product_category");
-        sql.SET("is_active = 0");
-        sql.SET("updated_time = NOW()");
+        sql.DELETE_FROM("product_category");  // 修改：使用DELETE而不是UPDATE
         sql.WHERE("id = #{id}");
-        sql.WHERE("is_active = 1");
+        // 删除 is_active = 1 的条件，因为DELETE会直接删除记录
         return sql.toString();
     }
 }
