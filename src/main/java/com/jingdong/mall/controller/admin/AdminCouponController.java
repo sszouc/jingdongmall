@@ -6,6 +6,7 @@ import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.CouponCreateRequest;
 import com.jingdong.mall.model.dto.request.CouponListRequest;
+import com.jingdong.mall.model.dto.request.CouponUpdateRequest;
 import com.jingdong.mall.model.dto.response.CouponCreateResponse;
 import com.jingdong.mall.model.dto.response.CouponListResponse;
 import com.jingdong.mall.service.CouponService;
@@ -78,5 +79,50 @@ public class AdminCouponController {
         log.info("管理员 {} 获取优惠券列表", currentUserId);
 
         return Result.success("获取成功", response);
+    }
+
+    @Operation(summary = "更新优惠券", description = "根据ID更新优惠券信息", security = @SecurityRequirement(name = "bearerAuth"))
+    @PutMapping("/{id}")
+    public Result<Void> updateCoupon(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "优惠券ID", required = true)
+            @PathVariable("id") Long couponId,
+            @Valid @RequestBody CouponUpdateRequest request) {
+
+        // 提取并验证JWT令牌
+        String token = extractTokenFromHeader(authHeader);
+        String currentUserIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer currentUserRole = jwtUtil.getUserRoleFromToken(token);
+        Long currentUserId = Long.parseLong(currentUserIdStr);
+
+        // 调用服务层更新优惠券
+        couponService.updateCoupon(currentUserId, currentUserRole, couponId, request);
+
+        log.info("管理员 {} 更新优惠券ID {} 信息", currentUserId, couponId);
+
+        return Result.success("更新成功", null);
+    }
+
+    @Operation(summary = "删除优惠券", description = "根据ID删除优惠券", security = @SecurityRequirement(name = "bearerAuth"))
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteCoupon(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "优惠券ID", required = true)
+            @PathVariable("id") Long couponId) {
+
+        // 提取并验证JWT令牌
+        String token = extractTokenFromHeader(authHeader);
+        String currentUserIdStr = jwtUtil.getUserIdFromToken(token);
+        Integer currentUserRole = jwtUtil.getUserRoleFromToken(token);
+        Long currentUserId = Long.parseLong(currentUserIdStr);
+
+        // 调用服务层删除优惠券
+        couponService.deleteCoupon(currentUserId, currentUserRole, couponId);
+
+        log.info("管理员 {} 删除优惠券ID {}", currentUserId, couponId);
+
+        return Result.success("删除成功", null);
     }
 }

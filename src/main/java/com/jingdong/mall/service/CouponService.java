@@ -2,6 +2,7 @@ package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.CouponListRequest;
 import com.jingdong.mall.model.dto.request.CouponCreateRequest;
+import com.jingdong.mall.model.dto.request.CouponUpdateRequest;
 import com.jingdong.mall.model.dto.response.CouponListResponse;
 import com.jingdong.mall.model.dto.response.CouponCreateResponse;
 
@@ -25,4 +26,23 @@ public interface CouponService {
      * @return 创建优惠券响应结果
      */
     CouponCreateResponse createCoupon(Long currentUserId, Integer currentUserRole, CouponCreateRequest request);
+
+    /**
+     * 更新优惠券
+     *
+     * @param currentUserId    当前用户ID
+     * @param currentUserRole  当前用户角色
+     * @param id                优惠券ID
+     * @param request          请求参数
+     */
+    void updateCoupon(Long currentUserId, Integer currentUserRole, Long id, CouponUpdateRequest request);
+
+    /**
+     * 删除优惠券
+     *
+     * @param currentUserId    当前用户ID
+     * @param currentUserRole  当前用户角色
+     * @param id                优惠券ID
+     */
+    void deleteCoupon(Long currentUserId, Integer currentUserRole, Long id);
 }

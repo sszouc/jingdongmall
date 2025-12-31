@@ -5,12 +5,14 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.CouponMapper;
 import com.jingdong.mall.model.dto.request.CouponListRequest;
 import com.jingdong.mall.model.dto.request.CouponCreateRequest;
+import com.jingdong.mall.model.dto.request.CouponUpdateRequest;
 import com.jingdong.mall.model.dto.response.CouponListItemResponse;
 import com.jingdong.mall.model.dto.response.CouponListResponse;
 import com.jingdong.mall.model.dto.response.CouponCreateResponse;
 import com.jingdong.mall.model.entity.Coupon;
 import com.jingdong.mall.service.CouponService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -108,6 +110,100 @@ public class CouponServiceImpl implements CouponService {
             throw e;
         } catch (Exception ex) {
             throw new BusinessException(ErrorCode.COUPON_CREATE_FAILED, "创建优惠券失败: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * 更新优惠券
+     *
+     * @param currentUserId    当前用户ID
+     * @param currentUserRole  当前用户角色
+     * @param id                优惠券ID
+     * @param request          请求参数
+     */
+    @Override
+    public void updateCoupon(Long currentUserId, Integer currentUserRole, Long id, CouponUpdateRequest request) {
+        // 仅管理员可用（role=1或2）
+        if (currentUserRole == null || (currentUserRole != 1 && currentUserRole != 2)) {
+            throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
+        }
+
+        // 校验ID
+        if (id == null || id <= 0) {
+            throw new BusinessException(ErrorCode.COUPON_UPDATE_FAILED, "优惠券ID无效");
+        }
+
+        try {
+            // 如果包含日期字符串，验证格式
+            if (request.getStartTime() != null) {
+                try {
+                    LocalDateTime.parse(request.getStartTime(), DATE_TIME_FORMATTER);
+                } catch (Exception pe) {
+                    throw new BusinessException(ErrorCode.DATE_FORMAT_ERROR, "日期格式不正确，请使用yyyy-MM-dd HH:mm:ss");
+                }
+            }
+            if (request.getEndTime() != null) {
+                try {
+                    LocalDateTime.parse(request.getEndTime(), DATE_TIME_FORMATTER);
+                } catch (Exception pe) {
+                    throw new BusinessException(ErrorCode.DATE_FORMAT_ERROR, "日期格式不正确，请使用yyyy-MM-dd HH:mm:ss");
+                }
+            }
+
+            // 检查名称重复（如果提供了 name）
+            if (request.getName() != null && !request.getName().trim().isEmpty()) {
+                int exist = couponMapper.countByNameExcludeId(request.getName().trim(), id);
+                if (exist > 0) {
+                    throw new BusinessException(ErrorCode.COUPON_NAME_DUPLICATE);
+                }
+            }
+
+            try {
+                int rows = couponMapper.updateCoupon(id, request);
+                if (rows <= 0) {
+                    throw new BusinessException(ErrorCode.COUPON_UPDATE_FAILED, "更新优惠券失败或优惠券不存在");
+                }
+
+            } catch (DuplicateKeyException dke) {
+                // 数据库唯一键冲突，转换为更友好的业务错误
+                throw new BusinessException(ErrorCode.COUPON_NAME_DUPLICATE);
+            }
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception ex) {
+            throw new BusinessException(ErrorCode.COUPON_UPDATE_FAILED, "更新优惠券失败: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * 删除优惠券
+     *
+     * @param currentUserId    当前用户ID
+     * @param currentUserRole  当前用户角色
+     * @param id                优惠券ID
+     */
+    @Override
+    public void deleteCoupon(Long currentUserId, Integer currentUserRole, Long id) {
+        // 仅管理员可用（role=1或2）
+        if (currentUserRole == null || (currentUserRole != 1 && currentUserRole != 2)) {
+            throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
+        }
+
+        // 校验ID
+        if (id == null || id <= 0) {
+            throw new BusinessException(ErrorCode.COUPON_DELETE_FAILED, "优惠券ID无效");
+        }
+
+        try {
+            int rows = couponMapper.deleteCoupon(id);
+            if (rows <= 0) {
+                throw new BusinessException(ErrorCode.COUPON_DELETE_FAILED, "删除优惠券失败或优惠券不存在");
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception ex) {
+            throw new BusinessException(ErrorCode.COUPON_DELETE_FAILED, "删除优惠券失败: " + ex.getMessage());
         }
     }
 }
