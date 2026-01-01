@@ -681,6 +681,8 @@ public class OrderServiceImpl implements OrderService {
         dto.setBuyerRemark(order.getBuyerRemark());
         dto.setCreatedAt(order.getCreatedTime());
         dto.setUpdatedAt(order.getUpdatedTime());
+        dto.setRefundTime(order.getRefundTime());
+        dto.setRefundReason(order.getRefundReason());
 
         return dto;
     }

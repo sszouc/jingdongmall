@@ -1,4 +1,3 @@
-//// service/impl/SmsServiceImpl.java
 //package com.jingdong.mall.service.impl;
 //
 //import com.jingdong.mall.common.exception.BusinessException;
