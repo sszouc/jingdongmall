@@ -159,6 +159,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private boolean validateSmsCode(String phone, String code) {
+
+
         // 这里实现验证码验证逻辑
         // 简化实现，实际项目中需要完整的验证码服务
         return "123456".equals(code); // 测试用，实际应该从Redis获取验证码

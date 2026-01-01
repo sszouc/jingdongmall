@@ -36,6 +36,11 @@ public enum ErrorCode {
     LOGOUT_FAILED(1018,"退出登录失败"),
     DATE_FORMAT_ERROR(1019, "日期格式不正确，请使用yyyy-MM-dd格式"),
     INVALID_OPERATION(1020,"无效的操作类型"),
+    SMS_SEND_TOO_FREQUENT(1021,"发送过于频繁，请稍后再试"),
+    SMS_SEND_MAX(1022,"今日发送次数已达上限"),
+    SMS_SEND_FAILED(1023,"短信发送失败"),
+    SMS_TYPE_INVALID(1024,"验证码类型错误"),
+
 
     // 商品相关 (2000-2999)
     PRODUCT_NOT_EXIST(2001, "商品不存在"),

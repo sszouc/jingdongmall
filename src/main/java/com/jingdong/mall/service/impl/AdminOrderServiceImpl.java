@@ -184,6 +184,8 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         validateAdminPermission(currentUserRole);
 
         Order order = orderMapper.selectByOrderSn(orderSn);
+
+        log.info(String.valueOf(order));
         if (order == null) {
             throw new BusinessException(ErrorCode.ORDER_NOT_EXIST);
         }
@@ -193,7 +195,6 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         return buildOrderDetailResponse(order, orderItems);
     }
 
-    // ========== 私有方法 ==========
 
     /**
      * 处理订单发货
@@ -273,7 +274,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         response.setUserId(order.getUserId());
 
         // 查询商品数量
-        Integer itemCount = orderMapper.countOrderItems(order.getOrderSn());
+        Integer itemCount = orderMapper.countOrderItems(String.valueOf(order.getId()));
         response.setItemCount(itemCount != null ? itemCount : 0);
 
         // 复制扩展属性（避免重复代码）
@@ -306,6 +307,10 @@ public class AdminOrderServiceImpl implements AdminOrderService {
 
         // 复制基础属性
         BeanUtils.copyProperties(order, dto, "status", "paymentMethod");
+
+        //屎山代码
+        dto.setUpdatedAt(order.getUpdatedTime());
+        dto.setCreatedAt(order.getCreatedTime());
 
         // 设置转换后的状态和支付方式
         dto.setStatus(OrderStatus.getDescByCode(order.getStatus()));
