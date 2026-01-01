@@ -524,10 +524,10 @@ public class OrderServiceImpl implements OrderService {
      * 申请退款
      */
     private void applyRefund(Order order, Integer currentStatus, String reason) {
-        // 申请退款只能从待发货(1)状态进行
-        if (currentStatus != 1) {
+        // 申请退款从待发货(1)，待收获(2)，已完成(3)状态进行
+        if (currentStatus != 1 && currentStatus != 2 && currentStatus != 3) {
             throw new BusinessException(ErrorCode.ORDER_STATUS_ERROR,
-                    "只有待发货状态的订单才能申请退款");
+                    "只有待发货、待收获、已完成状态的订单才能申请退款");
         }
 
         order.setStatus(5); // 5: 退款中
