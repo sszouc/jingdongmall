@@ -1,9 +1,57 @@
-# application.yml
+spring:
+  application:
+    name: jingdongmall
+  
+  datasource:
+    url: jdbc:mysql://47.104.222.121:3306/jd?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 6666
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+      file-size-threshold: 2KB
+  
+  # 需要添加 Redis 配置
+  data:
+    redis:
+      host: 47.104.222.121
+      port: 6379
+      password:
+      database: 0
+      timeout: 2000ms
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    auto-mapping-behavior: full
+
+jwt:
+  secret: vTqlKqym9glnprmgEN0mNz7rCFY2wlfra+k/Y3QqYDAYYtGYOWndayqgBxjcGpzeQYTxLk9TD/Akrxkqjhe3Iw==
+  expiration: 2952000000
+  
+  # 生产环境测试用，上线后要删除
+  token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxOSIsInJvbGUiOjIsImlhdCI6MTc2NTkzNDIzNSwiZXhwIjo0NzE3OTM0MjM1fQ.8k2ps1_BU2-Zpjr8XsR-zs9z6hPA-8fv6S5-sN3FLqRBFFkBif4EuUt1tnWL6lDA08nLIswecX10yyH7MOkd_Q
+
+server:
+  tomcat:
+    max-swallow-size: 100MB
+
+# 自定义文件上传配置
+file:
+  upload-dir: /app/uploads/avatar
+  base-url: /uploads/avatar
+
+# 阿里云短信配置（需要添加）
 aliyun:
   sms:
     access-key-id: ${ALIYUN_ACCESS_KEY_ID}  # 从环境变量读取
     access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET}
-    sign-name: 联想笔记本专营商城  # 短信签名
-    template-code: SMS_123456789  # 短信模板CODE
-    expire-minutes: 5  # 验证码有效期5分钟
-    max-send-per-day: 10  # 每天最多发送10次
+    endpoint: dypnsapi.aliyuncs.com
+    sign-name: 速通互联验证码
+    template-code: 100001
+    expire-minutes: 5
+    max-send-per-day: 100

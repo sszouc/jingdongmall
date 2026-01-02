@@ -13,6 +13,7 @@ import com.jingdong.mall.model.dto.response.UserLoginResponse;
 import com.jingdong.mall.model.dto.response.UserRegisterResponse;
 import com.jingdong.mall.model.entity.User;
 import com.jingdong.mall.service.AuthService;
+import com.jingdong.mall.service.SmsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,6 +38,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private SmsService smsService; // 注入短信服务
 
     @Override
     public UserRegisterResponse register(UserRegisterRequest request) {
@@ -93,8 +97,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 验证码校验
-        if (StringUtils.hasText(request.getPhone()) && !validateSmsCode(request.getPhone(), request.getCode())) {
-            throw new BusinessException(ErrorCode.VERIFY_CODE_EXPIRED);
+        if (StringUtils.hasText(request.getPhone()) && !validateSmsCode(request.getPhone(), request.getCode(),"register")) {
+            throw new BusinessException(ErrorCode.VERIFY_CODE_ERROR);
         }
 
     }
@@ -158,12 +162,15 @@ public class AuthServiceImpl implements AuthService {
         return response;
     }
 
-    private boolean validateSmsCode(String phone, String code) {
-
-
-        // 这里实现验证码验证逻辑
-        // 简化实现，实际项目中需要完整的验证码服务
-        return "123456".equals(code); // 测试用，实际应该从Redis获取验证码
+    private boolean validateSmsCode(String phone, String code,String type) {
+        try {
+            return smsService.verifyCode(phone, code, type);
+        } catch (BusinessException e) {
+            throw e; // 直接抛出业务异常
+        } catch (Exception e) {
+            log.error("验证码验证异常: phone={}, type={}", phone, "register", e);
+            throw new BusinessException(ErrorCode.VERIFY_CODE_ERROR);
+        }
     }
 
     @Override
@@ -181,7 +188,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 3. 验证验证码（复用已有校验逻辑）
-        if (!validateSmsCode(request.getPhone(), request.getCode())) {
+        if (!validateSmsCode(request.getPhone(), request.getCode(),"reset")) {
             throw new BusinessException(ErrorCode.VERIFY_CODE_ERROR);
         }
 

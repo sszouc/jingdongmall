@@ -14,5 +14,5 @@ public interface SmsService {
     /**
      * 验证验证码
      */
-    boolean verifyCode(SmsVerifyRequest request);
+    boolean verifyCode(String phone, String code, String type);
 }
