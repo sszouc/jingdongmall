@@ -239,7 +239,8 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                 order.getOrderSn(),
                 targetStatus,
                 isApprove ? LocalDateTime.now() : null,
-                reason
+                reason,
+                isApprove
         );
 
         if (result <= 0) {

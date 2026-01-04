@@ -46,14 +46,15 @@ public interface AdminOrderMapper {
     // 更新订单退款信息
     @Update("UPDATE `order` SET " +
             "status = #{status}, " +
-            "refund_time = #{refundTime}, " +
+            "refund_time = IF(#{isApprove} = true, #{refundTime}, refund_time), " +
             "refund_reason = #{refundReason}, " +
             "updated_time = NOW() " +
             "WHERE order_sn = #{orderSn}")
     int updateOrderRefund(@Param("orderSn") String orderSn,
                           @Param("status") Integer status,
                           @Param("refundTime") java.time.LocalDateTime refundTime,
-                          @Param("refundReason") String refundReason);
+                          @Param("refundReason") String refundReason,
+                          @Param("isApprove") boolean isApprove);
 
 
     // 查询订单商品数量
