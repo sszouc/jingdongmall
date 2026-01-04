@@ -5,13 +5,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jingdong.mall.common.exception.BusinessException;
 import com.jingdong.mall.common.exception.ErrorCode;
-import com.jingdong.mall.mapper.ProductAddMapper;
 import com.jingdong.mall.mapper.ProductCategoryMapper;
 import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
-import com.jingdong.mall.model.dto.request.ProductAddRequest;
 import com.jingdong.mall.model.dto.request.ProductListRequest;
-import com.jingdong.mall.model.dto.response.ProductAddResponse;
 import com.jingdong.mall.model.dto.response.ProductDetailResponse;
 import com.jingdong.mall.model.dto.response.ProductListResponse;
 import com.jingdong.mall.model.dto.response.ProductSimpleResponse;
@@ -43,9 +40,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductCategoryMapper productCategoryMapper;
-
-    @Autowired
-    private ProductAddMapper productAddMapper;
 
     @Override
     public ProductDetailResponse getProductDetail(Integer productId) {
@@ -370,104 +364,5 @@ public class ProductServiceImpl implements ProductService {
         params.setRamCapacity("32GB(16+16)"); // 默认值，实际业务中可能需要计算
 
         return params;
-    }
-    /**
-     * 新增商品实现
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public ProductAddResponse addProduct(ProductAddRequest request) {
-        try {
-            log.info("开始新增商品：name={}, categoryId={}", request.getName(), request.getCategoryId());
-
-            // 1. 检查商品名称是否重复
-            int nameCount = productAddMapper.countByName(request.getName());
-            if (nameCount > 0) {
-                throw new BusinessException(ErrorCode.CATEGORY_NAME_EXIST);
-            }
-
-            // 2. 验证分类ID合法性（如果传入）
-            if (request.getCategoryId() != null) {
-                int categoryCount = productCategoryMapper.countById(request.getCategoryId());
-                if (categoryCount == 0) {
-                    throw new BusinessException(ErrorCode.CATEGORY_ID_INVALID);
-                }
-            }
-
-            // 3. 构建商品实体
-            Product product = buildProductEntity(request);
-
-            // 4. 保存商品
-            int result = productAddMapper.insertProduct(product);
-            if (result <= 0) {
-                throw new BusinessException(ErrorCode.PRODUCT_DETAIL_ERROR);
-            }
-
-            // 5. 构建响应
-            log.info("商品新增成功：id={}, name={}", product.getId(), product.getName());
-            return new ProductAddResponse(product.getId());
-
-        } catch (BusinessException e) {
-            log.warn("新增商品业务异常：{}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("新增商品系统异常", e);
-            throw new BusinessException(ErrorCode.PRODUCT_DETAIL_ERROR);
-        }
-    }
-
-    /**
-     * 构建商品实体
-     */
-    private Product buildProductEntity(ProductAddRequest request) throws JsonProcessingException, JsonProcessingException {
-        Product product = new Product();
-
-        // 基础信息
-        product.setCategoryId(request.getCategoryId());
-        product.setName(request.getName());
-        product.setDescription(request.getDescription());
-        product.setDetailHtml(request.getDetailHtml());
-
-        // 数组类型字段JSON序列化
-        if (request.getMainImages() != null) {
-            product.setMainImages(objectMapper.writeValueAsString(request.getMainImages()));
-        }
-        if (request.getTags() != null) {
-            product.setTags(objectMapper.writeValueAsString(request.getTags()));
-        }
-
-        // 配置信息
-        product.setModel(request.getModel());
-        product.setOs(request.getOs());
-        product.setPositioning(request.getPositioning());
-        product.setCpuModel(request.getCpuModel());
-        product.setCpuSeries(request.getCpuSeries());
-        product.setMaxTurboFreq(request.getMaxTurboFreq());
-        product.setCpuChip(request.getCpuChip());
-        product.setScreenSize(request.getScreenSize());
-        product.setScreenRatio(request.getScreenRatio());
-        product.setResolution(request.getResolution());
-        product.setColorGamut(request.getColorGamut());
-        product.setRefreshRate(request.getRefreshRate());
-        product.setRamType(request.getRamType());
-        product.setSsdType(request.getSsdType());
-        product.setGpuType(request.getGpuType());
-        product.setVramType(request.getVramType());
-        product.setCamera(request.getCamera());
-        product.setWifi(request.getWifi());
-        product.setBluetooth(request.getBluetooth());
-        product.setDataInterfaces(request.getDataInterfaces());
-        product.setVideoInterfaces(request.getVideoInterfaces());
-        product.setAudioInterfaces(request.getAudioInterfaces());
-        product.setKeyboard(request.getKeyboard());
-        product.setFaceId(request.getFaceId());
-        product.setWeight(request.getWeight());
-        product.setThickness(request.getThickness());
-        product.setSoftware(request.getSoftware());
-
-        // 默认值
-        product.setIsActive(1); // 启用状态
-
-        return product;
     }
 }

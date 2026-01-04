@@ -1,8 +1,6 @@
 package com.jingdong.mall.service;
 
-import com.jingdong.mall.model.dto.request.ProductAddRequest;
 import com.jingdong.mall.model.dto.request.ProductListRequest;
-import com.jingdong.mall.model.dto.response.ProductAddResponse;
 import com.jingdong.mall.model.dto.response.ProductDetailResponse;
 import com.jingdong.mall.model.dto.response.ProductListResponse;
 
@@ -21,9 +19,4 @@ public interface ProductService {
      * @return 商品列表响应
      */
     ProductListResponse getProductList(ProductListRequest request);
-
-    /**
-     * 新增商品
-     */
-    ProductAddResponse addProduct(ProductAddRequest request);
 }
