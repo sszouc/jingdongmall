@@ -57,6 +57,96 @@ public class AdminProductController {
         return Result.success("商品新增成功", response);
     }
 
+    @Operation(
+            summary = "更新商品",
+            description = "更新商品信息，名称不可与其他商品重复",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PutMapping("/{id}")
+    public Result<Void> updateProduct(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "商品ID", required = true)
+            @PathVariable Integer id,
+            @Valid @RequestBody com.jingdong.mall.model.dto.request.ProductUpdateRequest request) {
+
+        // 1. 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+
+        // 2. 验证管理员权限
+        Integer userRole = jwtUtil.getUserRoleFromToken(token);
+        if (userRole == null || (userRole != 1 && userRole != 2)) {
+            log.warn("非管理员尝试更新商品，用户角色：{}", userRole);
+            throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
+        }
+
+        // 3. 调用服务层更新商品（service层负责异常处理）
+        productService.updateProduct(id, request);
+
+        log.info("管理员更新商品成功，商品ID：{}", id);
+
+        return Result.success("商品更新成功", null);
+    }
+
+    @Operation(
+            summary = "删除商品",
+            description = "删除指定ID的商品",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteProduct(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Parameter(description = "商品ID", required = true)
+            @PathVariable Integer id) {
+
+        // 1. 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+
+        // 2. 验证管理员权限
+        Integer userRole = jwtUtil.getUserRoleFromToken(token);
+        if (userRole == null || (userRole != 1 && userRole != 2)) {
+            log.warn("非管理员尝试删除商品，用户角色：{}", userRole);
+            throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
+        }
+
+        // 3. 调用服务层删除商品
+        productService.deleteProduct(id);
+
+        log.info("管理员删除商品成功，商品ID：{}", id);
+
+        return Result.success("商品删除成功", null);
+    }
+
+    @Operation(
+            summary = "批量上下架商品",
+            description = "批量更新商品的上架/下架状态",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PutMapping("/status")
+    public Result<Void> batchUpdateStatus(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody com.jingdong.mall.model.dto.request.ProductStatusUpdateRequest request) {
+
+        // 1. 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+
+        // 2. 验证管理员权限
+        Integer userRole = jwtUtil.getUserRoleFromToken(token);
+        if (userRole == null || (userRole != 1 && userRole != 2)) {
+            log.warn("非管理员尝试批量更新商品状态，用户角色：{}", userRole);
+            throw new BusinessException(ErrorCode.ADMIN_NOT_PERMISSION);
+        }
+
+        // 3. 调用服务层批量更新
+        productService.batchUpdateStatus(request.getIds(), request.getStatus());
+
+        log.info("管理员批量更新商品上下架状态成功，ids={}，status={}", request.getIds(), request.getStatus());
+
+        return Result.success("批量更新成功", null);
+    }
+
     /**
      * 从请求头中提取token
      */

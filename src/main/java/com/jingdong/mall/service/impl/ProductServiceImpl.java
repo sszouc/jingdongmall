@@ -10,6 +10,7 @@ import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
 import com.jingdong.mall.model.dto.request.ProductAddRequest;
 import com.jingdong.mall.model.dto.request.ProductListRequest;
+import com.jingdong.mall.model.dto.request.ProductUpdateRequest;
 import com.jingdong.mall.model.dto.response.ProductAddResponse;
 import com.jingdong.mall.model.dto.response.ProductDetailResponse;
 import com.jingdong.mall.model.dto.response.ProductListResponse;
@@ -467,5 +468,182 @@ public class ProductServiceImpl implements ProductService {
         params.setRamCapacity("32GB(16+16)"); // 默认值，实际业务中可能需要计算
 
         return params;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateProduct(Integer id, ProductUpdateRequest request) {
+        try {
+            log.info("开始更新商品，id={}, request={}", id, request);
+
+            // 基础校验（ID 必须由框架保证为整数，但业务上不能为空）
+            if (id == null || id <= 0) {
+                throw new BusinessException(ErrorCode.PRODUCT_ID_NULL);
+            }
+
+            // 检查商品是否存在
+            int exists = productMapper.existsById(id);
+            if (exists == 0) {
+                log.warn("更新失败，商品不存在：id={}", id);
+                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+            }
+
+            // 名称重复校验（只在request提供name时校验）
+            if (request.getName() != null && !request.getName().trim().isEmpty()) {
+                int nameCount = productMapper.countByNameExceptId(request.getName(), id);
+                if (nameCount > 0) {
+                    log.warn("商品名称被占用：name={}，id={}", request.getName(), id);
+                    throw new BusinessException(ErrorCode.PRODUCT_NAME_DUPLICATE);
+                }
+            }
+
+            // 分类验证（如果提供）
+            if (request.getCategoryId() != null && request.getCategoryId() > 0) {
+                int catExists = productCategoryMapper.countById(request.getCategoryId());
+                if (catExists == 0) {
+                    log.warn("更新失败，分类不存在：categoryId={}", request.getCategoryId());
+                    throw new BusinessException(ErrorCode.CATEGORY_NOT_EXIST);
+                }
+            }
+
+            // JSON 字段转换
+            String mainImagesJson = null;
+            String tagsJson = null;
+            try {
+                if (request.getMainImages() != null) {
+                    mainImagesJson = objectMapper.writeValueAsString(request.getMainImages());
+                }
+                if (request.getTags() != null) {
+                    tagsJson = objectMapper.writeValueAsString(request.getTags());
+                }
+            } catch (JsonProcessingException e) {
+                log.error("更新商品时JSON转换失败", e);
+                throw new BusinessException(ErrorCode.PRODUCT_UPDATE_FAILED, "图片或标签格式错误");
+            }
+
+            // 构建Product实体并仅设置需要更新的字段
+            Product product = new Product();
+            product.setId(id);
+            product.setCategoryId(request.getCategoryId());
+            product.setName(request.getName());
+            product.setDescription(request.getDescription());
+            product.setDetailHtml(request.getDetailHtml());
+            product.setMainImages(mainImagesJson);
+            product.setTags(tagsJson);
+            product.setModel(request.getModel());
+            product.setOs(request.getOs());
+            product.setPositioning(request.getPositioning());
+            product.setCpuModel(request.getCpuModel());
+            product.setCpuSeries(request.getCpuSeries());
+            product.setMaxTurboFreq(request.getMaxTurboFreq());
+            product.setCpuChip(request.getCpuChip());
+            product.setScreenSize(request.getScreenSize());
+            product.setScreenRatio(request.getScreenRatio());
+            product.setResolution(request.getResolution());
+            product.setColorGamut(request.getColorGamut());
+            product.setRefreshRate(request.getRefreshRate());
+            product.setRamType(request.getRamType());
+            product.setSsdType(request.getSsdType());
+            product.setGpuType(request.getGpuType());
+            product.setVramType(request.getVramType());
+            product.setCamera(request.getCamera());
+            product.setWifi(request.getWifi());
+            product.setBluetooth(request.getBluetooth());
+            product.setDataInterfaces(request.getDataInterfaces());
+            product.setVideoInterfaces(request.getVideoInterfaces());
+            product.setAudioInterfaces(request.getAudioInterfaces());
+            product.setKeyboard(request.getKeyboard());
+            product.setFaceId(request.getFaceId());
+            product.setWeight(request.getWeight());
+            product.setThickness(request.getThickness());
+            product.setSoftware(request.getSoftware());
+
+            // 执行更新
+            int updateCount = productMapper.updateProduct(product);
+            if (updateCount <= 0) {
+                log.error("更新商品失败，id={}", id);
+                throw new BusinessException(ErrorCode.PRODUCT_UPDATE_FAILED, "数据库更新未生效");
+            }
+
+            log.info("更新商品成功，id={}", id);
+
+        } catch (BusinessException e) {
+            log.warn("更新商品业务异常：{}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("更新商品系统异常", e);
+            throw new BusinessException(ErrorCode.PRODUCT_UPDATE_FAILED, "系统异常，请稍后重试");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteProduct(Integer id) {
+        try {
+            log.info("开始删除商品，id={}", id);
+
+            if (id == null || id <= 0) {
+                throw new BusinessException(ErrorCode.PRODUCT_ID_NULL);
+            }
+
+            // 检查商品是否存在
+            int exist = productMapper.existsById(id);
+            if (exist == 0) {
+                log.warn("删除失败，商品不存在：id={}", id);
+                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST);
+            }
+
+            // 执行删除（直接DELETE，product_sku 有外键 ON DELETE CASCADE）
+            int rows = productMapper.deleteById(id);
+            if (rows <= 0) {
+                log.error("删除商品失败，id={}", id);
+                throw new BusinessException(ErrorCode.PRODUCT_DELETE_FAILED, "删除商品失败或商品不存在");
+            }
+
+            log.info("删除商品成功，id={}", id);
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("删除商品系统异常，id={}", id, e);
+            throw new BusinessException(ErrorCode.PRODUCT_DELETE_FAILED, "删除商品失败");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchUpdateStatus(java.util.List<Integer> ids, Integer status) {
+        try {
+            log.info("开始批量更新商品上下架状态，ids={}, status={}", ids, status);
+
+            // 基本校验
+            if (ids == null || ids.isEmpty()) {
+                throw new BusinessException(ErrorCode.PRODUCT_UPDATE_FAILED, "商品ID列表不能为空");
+            }
+            if (status == null || (status != 0 && status != 1)) {
+                throw new BusinessException(ErrorCode.PRODUCT_UPDATE_FAILED, "状态参数不合法");
+            }
+
+            // 检查所有ID是否存在
+            int existCount = productMapper.countByIds(ids);
+            if (existCount != ids.size()) {
+                log.warn("部分商品ID不存在或不可用，existCount={}, requestCount={}", existCount, ids.size());
+                throw new BusinessException(ErrorCode.PRODUCT_NOT_EXIST, "部分商品不存在");
+            }
+
+            // 执行批量更新
+            int updated = productMapper.batchUpdateStatus(ids, status);
+            if (updated <= 0) {
+                log.error("批量更新商品状态失败，ids={}", ids);
+                throw new BusinessException(ErrorCode.PRODUCT_UPDATE_FAILED, "批量更新失败");
+            }
+
+            log.info("批量更新商品上下架状态成功，更新数={}", updated);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("批量更新商品状态系统异常", e);
+            throw new BusinessException(ErrorCode.PRODUCT_UPDATE_FAILED, "批量更新商品状态失败");
+        }
     }
 }

@@ -49,4 +49,40 @@ public interface ProductMapper {
      */
     @Select("SELECT COUNT(*) FROM product WHERE name = #{name} AND is_deleted = 0")
     int countByName(@Param("name") String name);
+
+    /**
+     * 更新商品（动态SQL，按非空字段更新）
+     * @param product 商品实体
+     * @return 更新行数
+     */
+    @UpdateProvider(type = ProductSqlProvider.class, method = "updateProduct")
+    int updateProduct(Product product);
+
+    /**
+     * 更新时检查名称是否被其他商品占用
+     */
+    @Select("SELECT COUNT(*) FROM product WHERE name = #{name} AND id <> #{id} AND is_deleted = 0")
+    int countByNameExceptId(@Param("name") String name, @Param("id") Integer id);
+
+    /**
+     * 根据ID删除商品
+     */
+    @Delete("DELETE FROM product WHERE id = #{id}")
+    int deleteById(@Param("id") Integer id);
+
+    /**
+     * 根据ID批量更新 is_active 状态
+     * @param ids 商品ID列表
+     * @param status 状态 0/1
+     * @return 更新的行数
+     */
+    @UpdateProvider(type = ProductSqlProvider.class, method = "batchUpdateStatus")
+    int batchUpdateStatus(@Param("ids") java.util.List<Integer> ids, @Param("status") Integer status);
+
+    /**
+     * 统计给定ID列表中存在的商品数量
+     */
+    @SelectProvider(type = ProductSqlProvider.class, method = "countByIds")
+    int countByIds(@Param("ids") java.util.List<Integer> ids);
+
 }
