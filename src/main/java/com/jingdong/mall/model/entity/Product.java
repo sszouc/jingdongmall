@@ -41,6 +41,7 @@ public class Product {
     private String thickness;
     private String software;
     private Integer isActive;
+    private Integer isDeleted;
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
 

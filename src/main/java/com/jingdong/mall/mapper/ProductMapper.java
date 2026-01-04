@@ -32,4 +32,21 @@ public interface ProductMapper {
      */
     @SelectProvider(type = ProductSqlProvider.class, method = "countProductList")
     Long countProductList(@Param("request") ProductListRequest request);
+
+    /**
+     * 插入商品
+     * @param product 商品实体
+     * @return 插入行数
+     */
+    @InsertProvider(type = ProductSqlProvider.class, method = "insertProduct")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    int insert(Product product);
+
+    /**
+     * 检查商品名称是否重复
+     * @param name 商品名称
+     * @return 重复数量
+     */
+    @Select("SELECT COUNT(*) FROM product WHERE name = #{name} AND is_deleted = 0")
+    int countByName(@Param("name") String name);
 }

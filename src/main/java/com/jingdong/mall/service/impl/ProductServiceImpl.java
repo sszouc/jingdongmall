@@ -8,7 +8,9 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.ProductCategoryMapper;
 import com.jingdong.mall.mapper.ProductMapper;
 import com.jingdong.mall.mapper.ProductSkuMapper;
+import com.jingdong.mall.model.dto.request.ProductAddRequest;
 import com.jingdong.mall.model.dto.request.ProductListRequest;
+import com.jingdong.mall.model.dto.response.ProductAddResponse;
 import com.jingdong.mall.model.dto.response.ProductDetailResponse;
 import com.jingdong.mall.model.dto.response.ProductListResponse;
 import com.jingdong.mall.model.dto.response.ProductSimpleResponse;
@@ -159,6 +161,107 @@ public class ProductServiceImpl implements ProductService {
         return products.stream()
                 .map(this::convertToProductSimpleResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ProductAddResponse addProduct(ProductAddRequest request) {
+        try {
+            log.info("开始新增商品，商品名称：{}", request.getName());
+
+            // 1. 检查商品名称是否重复
+            int duplicateCount = productMapper.countByName(request.getName());
+            if (duplicateCount > 0) {
+                log.warn("商品名称重复：{}", request.getName());
+                throw new BusinessException(ErrorCode.PRODUCT_NAME_DUPLICATE);
+            }
+
+            // 2. 检查分类ID是否存在（如果提供了分类ID）
+            if (request.getCategoryId() != null && request.getCategoryId() > 0) {
+                int categoryExists = productCategoryMapper.countById(request.getCategoryId());
+                if (categoryExists == 0) {
+                    log.warn("分类ID不存在：{}", request.getCategoryId());
+                    throw new BusinessException(ErrorCode.CATEGORY_NOT_EXIST);
+                }
+            }
+
+            // 3. 转换JSON字段
+            String mainImagesJson = null;
+            String tagsJson = null;
+
+            try {
+                if (request.getMainImages() != null && !request.getMainImages().isEmpty()) {
+                    mainImagesJson = objectMapper.writeValueAsString(request.getMainImages());
+                }
+                if (request.getTags() != null && !request.getTags().isEmpty()) {
+                    tagsJson = objectMapper.writeValueAsString(request.getTags());
+                }
+            } catch (JsonProcessingException e) {
+                log.error("JSON转换失败", e);
+                throw new BusinessException(ErrorCode.PRODUCT_CREATE_FAILED, "商品图片或标签格式错误");
+            }
+
+            // 4. 构建Product实体
+            Product product = new Product();
+            product.setCategoryId(request.getCategoryId());
+            product.setName(request.getName());
+            product.setDescription(request.getDescription());
+            product.setDetailHtml(request.getDetailHtml());
+            product.setMainImages(mainImagesJson);
+            product.setTags(tagsJson);
+            product.setModel(request.getModel());
+            product.setOs(request.getOs());
+            product.setPositioning(request.getPositioning());
+            product.setCpuModel(request.getCpuModel());
+            product.setCpuSeries(request.getCpuSeries());
+            product.setMaxTurboFreq(request.getMaxTurboFreq());
+            product.setCpuChip(request.getCpuChip());
+            product.setScreenSize(request.getScreenSize());
+            product.setScreenRatio(request.getScreenRatio());
+            product.setResolution(request.getResolution());
+            product.setColorGamut(request.getColorGamut());
+            product.setRefreshRate(request.getRefreshRate());
+            product.setRamType(request.getRamType());
+            product.setSsdType(request.getSsdType());
+            product.setGpuType(request.getGpuType());
+            product.setVramType(request.getVramType());
+            product.setCamera(request.getCamera());
+            product.setWifi(request.getWifi());
+            product.setBluetooth(request.getBluetooth());
+            product.setDataInterfaces(request.getDataInterfaces());
+            product.setVideoInterfaces(request.getVideoInterfaces());
+            product.setAudioInterfaces(request.getAudioInterfaces());
+            product.setKeyboard(request.getKeyboard());
+            product.setFaceId(request.getFaceId());
+            product.setWeight(request.getWeight());
+            product.setThickness(request.getThickness());
+            product.setSoftware(request.getSoftware());
+            product.setIsActive(1);
+            product.setIsDeleted(0);
+
+            // 5. 插入数据库
+            int result = productMapper.insert(product);
+
+            if (result == 0) {
+                log.error("插入商品失败，商品名称：{}", request.getName());
+                throw new BusinessException(ErrorCode.PRODUCT_CREATE_FAILED, "数据库插入失败");
+            }
+
+            log.info("商品新增成功，商品ID：{}，商品名称：{}", product.getId(), product.getName());
+
+            // 6. 返回响应
+            ProductAddResponse response = new ProductAddResponse();
+            response.setId(product.getId());
+
+            return response;
+
+        } catch (BusinessException e) {
+            log.warn("新增商品业务异常：{}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("新增商品系统异常", e);
+            throw new BusinessException(ErrorCode.PRODUCT_CREATE_FAILED, "系统异常，请稍后重试");
+        }
     }
 
     /**

@@ -56,6 +56,10 @@ public enum ErrorCode {
     BUY_NOW_SPEC_INVALID(2012, "商品规格不合法"),
     SKU_INVALID(2013,"SKU不合法"),
     SKU_NOT_IN_CART(2014,"SKU不在购物车内"),
+    PRODUCT_CREATE_FAILED(2015, "创建商品失败"),
+    PRODUCT_NAME_DUPLICATE(2016, "商品名称已存在"),
+    PRODUCT_UPDATE_FAILED(2017, "更新商品失败"),
+    PRODUCT_DELETE_FAILED(2018, "删除商品失败"),
 
     // 订单相关 (3000-3999)
     ORDER_NOT_EXIST(3001, "订单不存在"),
