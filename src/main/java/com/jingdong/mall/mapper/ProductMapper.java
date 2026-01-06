@@ -71,6 +71,12 @@ public interface ProductMapper {
     int deleteById(@Param("id") Integer id);
 
     /**
+     * 根据ID获得分类名称
+     */
+    @Select("SELECT name FROM product WHERE category_id = #{id}")
+    String getCategoryNameById(@Param("id") Integer id);
+
+    /**
      * 根据ID批量更新 is_active 状态
      * @param ids 商品ID列表
      * @param status 状态 0/1

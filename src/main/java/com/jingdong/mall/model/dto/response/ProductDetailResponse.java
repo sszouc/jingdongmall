@@ -18,6 +18,8 @@ public class ProductDetailResponse {
     private String priceRange;
     private List<String> mainImages;
     private String detailHtml;
+    private Integer categoryId;
+    private String categoryName;
     private List<ProductSpec> specs;
     private List<ProductSkuResponse> skus;
     private ProductParams params;

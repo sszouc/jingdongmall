@@ -340,6 +340,9 @@ public class ProductServiceImpl implements ProductService {
         response.setName(product.getName());
         response.setDesc(product.getDescription());
         response.setDetailHtml(product.getDetailHtml());
+        response.setCategoryId(product.getCategoryId());
+
+        response.setCategoryName(productMapper.getCategoryNameById(product.getCategoryId()));
 
         // 价格范围
         BigDecimal minPrice = productSkuMapper.selectMinPrice(product.getId());
