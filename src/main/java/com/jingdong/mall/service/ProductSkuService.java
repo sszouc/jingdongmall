@@ -1,6 +1,7 @@
 package com.jingdong.mall.service;
 
 import com.jingdong.mall.model.dto.request.SkuAddRequest;
+import com.jingdong.mall.model.dto.request.SkuBatchStatusRequest;
 import com.jingdong.mall.model.dto.request.SkuUpdateRequest;
 import com.jingdong.mall.model.dto.response.SkuAddResponse;
 
@@ -25,4 +26,10 @@ public interface ProductSkuService {
      * @param skuId SKU ID
      */
     void deleteSku(Integer skuId);
+
+    /**
+     * 批量更新SKU激活状态
+     * @param request 包含ids和isActive
+     */
+    void batchUpdateStatus(SkuBatchStatusRequest request);
 }

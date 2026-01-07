@@ -4,6 +4,9 @@ import com.jingdong.mall.model.entity.ProductSku;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.SQL;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class ProductSkuProvider {
 
     /**
@@ -113,4 +116,32 @@ public class ProductSkuProvider {
 
         return sql.toString();
     }
+
+    /**
+     * 批量更新SKU激活状态
+     *
+     * @param ids      SKU ID列表
+     * @param isActive 激活状态
+     * @return SQL字符串
+     */
+    public String batchUpdateStatus(@Param("ids") List<Integer> ids, @Param("isActive") Integer isActive) {
+        if (ids == null || ids.isEmpty()) {
+            // 返回一个不会影响任何行的SQL
+            return "UPDATE product_sku SET is_active = #{isActive} WHERE 1=0";
+        }
+        String idList = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+        return "UPDATE product_sku SET is_active = #{isActive}, updated_time = NOW() WHERE id IN (" + idList + ")";
+    }
+
+    /**
+     * 统计给定ids中存在的SKU数量
+     */
+    public String countByIds(@Param("ids") List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return "SELECT 0";
+        }
+        String idList = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+        return "SELECT COUNT(*) FROM product_sku WHERE id IN (" + idList + ")";
+    }
 }
+

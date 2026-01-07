@@ -7,6 +7,7 @@ import com.jingdong.mall.common.response.Result;
 import com.jingdong.mall.common.utils.JwtUtil;
 import com.jingdong.mall.model.dto.request.SkuAddRequest;
 import com.jingdong.mall.model.dto.request.SkuUpdateRequest;
+import com.jingdong.mall.model.dto.request.SkuBatchStatusRequest;
 import com.jingdong.mall.model.dto.response.SkuAddResponse;
 import com.jingdong.mall.service.ProductSkuService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -106,6 +107,31 @@ public class AdminSkuController {
         log.info("管理员删除SKU成功，SKU ID：{}", skuId);
 
         return Result.success("SKU删除成功", null);
+    }
+
+    @Operation(
+            summary = "批量更新SKU状态",
+            description = "批量更新SKU的激活状态",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @PutMapping("/batch-status")
+    public Result<Void> batchUpdateStatus(
+            @Parameter(description = "JWT认证令牌", required = true)
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody SkuBatchStatusRequest request) {
+
+        // 1. 提取并验证token
+        String token = extractTokenFromHeader(authHeader);
+
+        // 2. 验证管理员权限
+        validateAdminRole(token);
+
+        // 3. 调用服务层批量更新状态
+        productSkuService.batchUpdateStatus(request);
+
+        log.info("管理员批量更新SKU状态成功，ids={}，isActive={}", request.getIds(), request.getIsActive());
+
+        return Result.success("批量状态更新成功", null);
     }
 
     /**

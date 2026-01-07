@@ -87,4 +87,21 @@ public interface ProductSkuMapper {
      */
     @Select("SELECT COUNT(*) FROM product_sku WHERE id = #{skuId}")
     int countById(@Param("skuId") Integer skuId);
+
+    /**
+     * 批量更新SKU状态
+     * @param ids SKU ID列表
+     * @param isActive 激活状态
+     * @return 更新行数
+     */
+    @UpdateProvider(type = ProductSkuProvider.class, method = "batchUpdateStatus")
+    int batchUpdateStatus(@Param("ids") List<Integer> ids, @Param("isActive") Integer isActive);
+
+    /**
+     * 统计给定ids中存在的SKU数量
+     * @param ids SKU ID列表
+     * @return 存在数量
+     */
+    @SelectProvider(type = ProductSkuProvider.class, method = "countByIds")
+    int countByIds(@Param("ids") List<Integer> ids);
 }

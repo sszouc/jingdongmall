@@ -6,6 +6,7 @@ import com.jingdong.mall.common.exception.ErrorCode;
 import com.jingdong.mall.mapper.ProductSkuMapper;
 import com.jingdong.mall.model.dto.request.SkuAddRequest;
 import com.jingdong.mall.model.dto.request.SkuUpdateRequest;
+import com.jingdong.mall.model.dto.request.SkuBatchStatusRequest;
 import com.jingdong.mall.model.dto.response.SkuAddResponse;
 import com.jingdong.mall.model.entity.ProductSku;
 import com.jingdong.mall.service.ProductSkuService;
@@ -13,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -149,6 +152,39 @@ public class ProductSkuServiceImpl implements ProductSkuService {
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchUpdateStatus(SkuBatchStatusRequest request) {
+        try {
+            log.info("开始批量更新SKU状态，ids={}，isActive={}", request.getIds(), request.getIsActive());
+
+            List<Integer> ids = request.getIds();
+
+            // 由于参数校验已在DTO层通过注解进行，service层不重复校验具体数值，
+            // 这里只校验数据库中是否存在这些sku id
+            int existCount = productSkuMapper.countByIds(ids);
+            if (existCount != ids.size()) {
+                log.warn("部分SKU不存在，期望数量={}，实际存在={}", ids.size(), existCount);
+                throw new BusinessException(ErrorCode.SKU_NOT_EXIST, "部分SKU ID在数据库中不存在或已被删除");
+            }
+
+            int updated = productSkuMapper.batchUpdateStatus(ids, request.getIsActive());
+            if (updated == 0) {
+                log.error("批量更新SKU状态失败，ids={}", ids);
+                throw new BusinessException(ErrorCode.SKU_UPDATE_FAILED, "数据库未更新任何行");
+            }
+
+            log.info("批量更新SKU状态成功，ids={}，isActive={}，updated={}", ids, request.getIsActive(), updated);
+
+        } catch (BusinessException e) {
+            log.warn("批量更新SKU状态业务异常：{}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("批量更新SKU状态系统异常", e);
+            throw new BusinessException(ErrorCode.SKU_UPDATE_FAILED, "系统异常，请稍后重试");
+        }
+    }
+
     /**
      * 检查产品是否存在
      */
@@ -267,3 +303,4 @@ public class ProductSkuServiceImpl implements ProductSkuService {
         return sku;
     }
 }
+
