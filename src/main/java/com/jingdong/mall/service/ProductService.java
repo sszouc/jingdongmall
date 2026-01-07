@@ -3,9 +3,11 @@ package com.jingdong.mall.service;
 import com.jingdong.mall.model.dto.request.ProductAddRequest;
 import com.jingdong.mall.model.dto.request.ProductListRequest;
 import com.jingdong.mall.model.dto.request.ProductUpdateRequest;
+import com.jingdong.mall.model.dto.request.SkuAddRequest;
 import com.jingdong.mall.model.dto.response.ProductAddResponse;
 import com.jingdong.mall.model.dto.response.ProductDetailResponse;
 import com.jingdong.mall.model.dto.response.ProductListResponse;
+import com.jingdong.mall.model.dto.response.SkuAddResponse;
 
 public interface ProductService {
 

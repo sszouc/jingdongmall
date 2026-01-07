@@ -90,5 +90,4 @@ public interface ProductMapper {
      */
     @SelectProvider(type = ProductSqlProvider.class, method = "countByIds")
     int countByIds(@Param("ids") java.util.List<Integer> ids);
-
 }

@@ -60,6 +60,9 @@ public enum ErrorCode {
     PRODUCT_NAME_DUPLICATE(2016, "商品名称已存在"),
     PRODUCT_UPDATE_FAILED(2017, "更新商品失败"),
     PRODUCT_DELETE_FAILED(2018, "删除商品失败"),
+    PRODUCT_PARAM_ERROR(2019, "商品参数错误"),
+    SKU_CREATE_FAILED(2020, "创建SKU失败"),
+    SKU_DUPLICATE(2021, "相同规格的SKU已存在"),
 
     // 订单相关 (3000-3999)
     ORDER_NOT_EXIST(3001, "订单不存在"),
