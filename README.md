@@ -4,7 +4,7 @@
 
 ## 🌟 项目特点
 
-- **现代化架构**：采用 Spring Boot + MyBatis Plus + MySQL 技术栈
+- **现代化架构**：采用 Spring Boot + MyBatis Plus + MySQL + Docker技术栈
 - **RESTful API**：遵循 REST 设计规范，前后端分离
 - **安全可靠**：JWT 认证授权 + Spring Security
 - **代码规范**：统一响应格式、全局异常处理、参数校验
@@ -40,6 +40,7 @@ jingdong-mall-backend/
 │   ├── service/                        # 业务层
 │   │   └── impl/                       # 业务实现
 │   ├── mapper/                         # 数据访问层
+│   ├── provider/                       # 数据访问provider
 │   └── model/                          # 数据模型
 │       ├── entity/                     # 实体类
 │       └── dto/                        # 数据传输对象
@@ -47,7 +48,7 @@ jingdong-mall-backend/
 │           └── response/               # 响应DTO
 └── src/main/resources/
     ├── application.yml                 # 主配置
-    └── mapper/                         # MyBatis XML
+    └── schema.sql/                     # 数据库建表语句
 ```
 
 ## 🚀 快速开始
@@ -207,6 +208,9 @@ Authorization: Bearer <your_jwt_token>
 - 获取公告详情
 - 更新公告
 - 删除公告
+
+### SKU管理
+- SKU增删改
 
 ### 验证码
 - 发送验证码
