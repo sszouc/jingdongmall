@@ -73,7 +73,7 @@ public interface ProductMapper {
     /**
      * 根据ID获得分类名称
      */
-    @Select("SELECT name FROM product_category WHERE id = #{id}")
+    @Select("SELECT name FROM product WHERE category_id = #{id}")
     String getCategoryNameById(@Param("id") Integer id);
 
     /**
