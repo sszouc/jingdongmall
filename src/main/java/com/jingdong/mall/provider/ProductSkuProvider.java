@@ -45,4 +45,72 @@ public class ProductSkuProvider {
 
         return sql.toString();
     }
+
+    /**
+     * 更新SKU SQL
+     */
+    public String updateSku(ProductSku productSku) {
+        SQL sql = new SQL();
+        sql.UPDATE("product_sku");
+
+        // 更新字段，只更新非空字段
+        if (productSku.getProductId() != null) {
+            sql.SET("product_id = #{productId}");
+        }
+
+        if (productSku.getPrice() != null) {
+            sql.SET("price = #{price}");
+        }
+
+        if (productSku.getStock() != null) {
+            sql.SET("stock = #{stock}");
+        }
+
+        if (productSku.getSalesCount() != null) {
+            sql.SET("sales_count = #{salesCount}");
+        }
+
+        if (productSku.getOs() != null) {
+            sql.SET("os = #{os}");
+        }
+
+        if (productSku.getCpu() != null) {
+            sql.SET("cpu = #{cpu}");
+        }
+
+        if (productSku.getRam() != null) {
+            sql.SET("ram = #{ram}");
+        }
+
+        if (productSku.getStorage() != null) {
+            sql.SET("storage = #{storage}");
+        }
+
+        if (productSku.getGpu() != null) {
+            sql.SET("gpu = #{gpu}");
+        }
+
+        if (productSku.getSsdCapacity() != null) {
+            sql.SET("ssd_capacity = #{ssdCapacity}");
+        }
+
+        if (productSku.getGpuChip() != null) {
+            sql.SET("gpu_chip = #{gpuChip}");
+        }
+
+        if (productSku.getVramCapacity() != null) {
+            sql.SET("vram_capacity = #{vramCapacity}");
+        }
+
+        if (productSku.getIsActive() != null) {
+            sql.SET("is_active = #{isActive}");
+        }
+
+        // 更新时间
+        sql.SET("updated_time = NOW()");
+
+        sql.WHERE("id = #{id}");
+
+        return sql.toString();
+    }
 }
