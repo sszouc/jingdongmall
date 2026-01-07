@@ -15,10 +15,12 @@ public class ProductSqlProvider {
     public String selectProductList(ProductListRequest request) {
         SQL sql = new SQL();
 
-        // 使用反引号避免关键字冲突
+        // 使用JOIN代替子查询
         sql.SELECT("p.*");
-        sql.SELECT("(SELECT MIN(price) FROM product_sku WHERE product_id = p.id AND is_active = 1) as min_price");
+        sql.SELECT("MIN(ps.price) as min_price");
+        sql.SELECT("SUM(ps.sales_count) as total_sales");
         sql.FROM("product p");
+        sql.LEFT_OUTER_JOIN("product_sku ps ON p.id = ps.product_id AND ps.is_active = 1");
         sql.WHERE("p.is_active = 1");
 
         // 关键词搜索条件
@@ -31,13 +33,16 @@ public class ProductSqlProvider {
             sql.WHERE("p.category_id = #{request.categoryId}");
         }
 
-        // 价格区间筛选
+        // 分组
+        sql.GROUP_BY("p.id");
+
+        // HAVING子句处理价格筛选（分组后才能使用聚合函数）
         if (request.getMinPrice() != null) {
-            sql.WHERE("(SELECT MIN(price) FROM product_sku WHERE product_id = p.id AND is_active = 1) >= #{request.minPrice}");
+            sql.HAVING("MIN(ps.price) >= #{request.minPrice}");
         }
 
         if (request.getMaxPrice() != null) {
-            sql.WHERE("(SELECT MIN(price) FROM product_sku WHERE product_id = p.id AND is_active = 1) <= #{request.maxPrice}");
+            sql.HAVING("MIN(ps.price) <= #{request.maxPrice}");
         }
 
         // 排序方式
@@ -51,8 +56,7 @@ public class ProductSqlProvider {
                     sql.ORDER_BY("min_price DESC");
                     break;
                 case "sales_desc":
-                    // 假设有一个方法可以获取销量，这里简化处理
-                    sql.ORDER_BY("(SELECT SUM(sales_count) FROM product_sku WHERE product_id = p.id) DESC");
+                    sql.ORDER_BY("total_sales DESC");
                     break;
                 default: // created_desc
                     sql.ORDER_BY("p.created_time DESC");
