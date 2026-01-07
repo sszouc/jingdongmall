@@ -20,6 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import cn.hutool.core.lang.Snowflake;
+import cn.hutool.core.util.IdUtil;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -804,10 +807,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private String generateOrderSn() {
-        // 生成订单号：时间戳 + 随机数
-        // 实际项目中应使用分布式ID生成器
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String random = String.valueOf((int)(Math.random() * 9000) + 1000);
-        return timestamp + random;
+
+        Snowflake snowflake1 = IdUtil.getSnowflake();
+        long id1 = snowflake1.nextId(); // 默认workerId=0, datacenterId=0
+        return String.valueOf(id1);
     }
 }
