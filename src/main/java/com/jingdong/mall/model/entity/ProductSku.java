@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 public class ProductSku {
     private Integer id;
     private Integer productId;
-    //private String skuCode;
     private BigDecimal price;
     private Integer stock;
     private Integer salesCount;

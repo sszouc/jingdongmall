@@ -465,8 +465,13 @@ public class ProductServiceImpl implements ProductService {
         params.setThickness(product.getThickness());
         params.setSoftware(product.getSoftware());
 
-        // 注意：ramCapacity字段需要从SKU中获取，这里使用一个默认值或从商品描述中提取
-        params.setRamCapacity("32GB(16+16)"); // 默认值，实际业务中可能需要计算
+        ProductSku productSku = productMapper.selectFirstSkuByProductId(product.getId());
+
+        if (productSku != null && productSku.getRam() != null) {
+            params.setRamCapacity(productSku.getRam());
+        } else {
+            params.setRamCapacity(null);
+        }
 
         return params;
     }

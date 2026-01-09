@@ -2,6 +2,7 @@ package com.jingdong.mall.mapper;
 
 import com.jingdong.mall.model.dto.request.ProductListRequest;
 import com.jingdong.mall.model.entity.Product;
+import com.jingdong.mall.model.entity.ProductSku;
 import com.jingdong.mall.provider.ProductSqlProvider;
 import org.apache.ibatis.annotations.*;
 
@@ -90,4 +91,12 @@ public interface ProductMapper {
      */
     @SelectProvider(type = ProductSqlProvider.class, method = "countByIds")
     int countByIds(@Param("ids") java.util.List<Integer> ids);
+
+    /**
+     * 根据商品ID获取第一个SKU
+     * @param productId 商品ID
+     * @return 第一个SKU，如果没有则返回null
+     */
+    @Select("SELECT * FROM product_sku WHERE product_id = #{productId} AND is_active = 1 ORDER BY id ASC LIMIT 1")
+    ProductSku selectFirstSkuByProductId(@Param("productId") Integer productId);
 }
