@@ -244,7 +244,7 @@ CREATE TABLE order_item
     sku_id            INT             NOT NULL COMMENT 'SKU ID',
     product_name      VARCHAR(200)    NOT NULL COMMENT '商品名称（快照）',
     sku_specs         JSON            NOT NULL COMMENT 'SKU规格（快照）',
-    main_image        VARCHAR(255)    NOT NULL COMMENT '商品主图（快照）',
+    main_image        TEXT    NOT NULL COMMENT '商品主图（快照）',
     price             DECIMAL(10, 2)  NOT NULL COMMENT '商品单价（快照）',
     quantity          INT             NOT NULL COMMENT '购买数量',
     total_price       DECIMAL(10, 2)  NOT NULL COMMENT '商品总价 = price * quantity',

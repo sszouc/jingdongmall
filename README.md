@@ -25,7 +25,7 @@
 ## 📁 项目结构
 
 ```
-jingdong-mall-backend/
+jingdongmall/
 ├── src/main/java/com/jingdong/mall/
 │   ├── JingdongMallApplication.java    # 主启动类
 │   ├── common/                         # 通用模块
